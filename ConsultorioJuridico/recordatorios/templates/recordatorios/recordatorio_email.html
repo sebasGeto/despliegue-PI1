@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio de Cita - Consultorio Jurídico Icesi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .email-wrapper {
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box h2 {
+            margin: 0 0 10px 0;
+            color: #1e3a8a;
+            font-size: 16px;
+        }
+        .info-item {
+            margin: 8px 0;
+            color: #4b5563;
+            font-size: 14px;
+        }
+        .info-item strong {
+            color: #1f2937;
+        }
+        .message {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="email-wrapper">
+            <!-- Header con colores institucionales -->
+            <div class="header">
+                <div class="logo">Consultorio Jurídico Icesi</div>
+                <p>Sistema de Atención Legal</p>
+            </div>
+            
+            <!-- Contenido del correo -->
+            <div class="content">
+                <div class="greeting">
+                    Estimado/a <strong>{{ nombre_beneficiario }}</strong>,
+                </div>
+                
+                <p class="message">
+                    Le informamos que tiene una cita programada en nuestro Consultorio Jurídico. 
+                    A continuación encontrará los detalles de su cita:
+                </p>
+                
+                <!-- Box de información de la cita -->
+                <div class="info-box">
+                    <h2>📅 Detalles de su Cita</h2>
+                    <div class="info-item">
+                        <strong>Fecha:</strong> {{ fecha_cita }}
+                    </div>
+                    <div class="info-item">
+                        <strong>Hora:</strong> {{ hora_cita }}
+                    </div>
+                    <div class="info-item">
+                        <strong>Tipo de atención:</strong> {{ tipo_atencion }}
+                    </div>
+                </div>
+                
+                <p class="message">
+                    Por favor, recuerde asistir a su cita en el horario indicado. 
+                    Si necesita cancelar o reprogramar, le agradeceremos contactarnos con 
+                    anticipación.
+                </p>
+                
+                <p class="message">
+                    Si tiene alguna pregunta o necesita asistencia, no dude en contactarnos.
+                </p>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <p style="color: #6b7280; font-size: 14px;">
+                        Att,<br>
+                        <strong>Equipo del Consultorio Jurídico Icesi</strong>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <p>Este es un mensaje automático de recordatorio.</p>
+                <p>Consultorio Jurídico - Universidad Icesi</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Métricas de asistencia{% endblock %}
+
+{% block extra_styles %}
+<style>
+/* Dashboard specific styles */
+.dashboard-header{display:flex;align-items:center;gap:16px;padding:12px 0 20px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.dashboard-header img{width:44px;height:44px}
+.dashboard-header h1{font-size:20px;margin:0}
+.dashboard-header p{margin:0;color:var(--text-muted);font-size:13px}
+.filter-panel{background:var(--bg-elevated);padding:12px;border-radius:8px;border:1px solid var(--border);display:block}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:0 1px 0 rgba(0,0,0,0.04)}
+.card-header{font-weight:700;margin-bottom:8px;color:var(--text-secondary);font-size:14px}
+.card-body p{margin:6px 0;color:var(--text-primary)}
+.btn{padding:8px 12px;border-radius:6px;text-decoration:none;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);font-size:13px}
+.btn-primary{background:var(--accent-primary);color:#fff;border:none}
+.btn-secondary{background:transparent;color:var(--text-primary);border:1px solid var(--border);}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text-primary)}
+@media(max-width:900px){.cards-grid{grid-template-columns:1fr}.filter-panel{padding:10px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="dashboard-header">
+    <img src="/static/img/icono_reportes.png" alt="Reportes">
+    <div>
+        <h1>Métricas de asistencia</h1>
+        <p>Resumen y filtros — administra métricas de asistencia</p>
+    </div>
+</header>
+<form method="get" class="filter-panel" style="margin-bottom: 24px; display: grid; gap: 16px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        <label>
+            Fecha inicio
+            <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio|default_if_none:'' }}" />
+        </label>
+        <label>
+            Fecha fin
+            <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin|default_if_none:'' }}" />
+        </label>
+        <label>
+            Sala jurídica
+            <select name="sala_juridica">
+                <option value="">Todas</option>
+                {% for codigo, etiqueta in sala_choices %}
+                <option value="{{ codigo }}" {% if filtros.sala_juridica == codigo %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            Estudiante
+            <select name="estudiante_id">
+                <option value="">Todos</option>
+                {% for estudiante in estudiantes %}
+                <option value="{{ estudiante.id }}" {% if filtros.estudiante_id|stringformat:"s" == estudiante.id|stringformat:"s" %}selected{% endif %}>{{ estudiante.nombre_completo }}</option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+        <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+        <a href="?" class="btn btn-secondary">Limpiar filtros</a>
+    </div>
+</form>
+
+<div class="cards-grid">
+    <div class="card">
+        <div class="card-header">Métricas actuales</div>
+        <div class="card-body">
+            {% if ultimo %}
+            <p><strong>Total citas finalizadas:</strong> {{ ultimo.total_citas }}</p>
+            <p><strong>Citas asistidas:</strong> {{ ultimo.asistidas_count }}</p>
+            <p><strong>Citas no asistidas:</strong> {{ ultimo.no_asistio_count }}</p>
+            <p><strong>Porcentaje asistencia:</strong> {{ ultimo.porcentaje_asistencia }}%</p>
+            <p><strong>Porcentaje inasistencia:</strong> {{ ultimo.porcentaje_inasistencia }}%</p>
+            {% else %}
+            <p>No hay métricas calculadas aún.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Resumen del filtro</div>
+        <div class="card-body">
+            <p><strong>Registros encontrados:</strong> {{ total_registros }}</p>
+            <p><strong>Asistidos:</strong> {{ asistidos_count }}</p>
+            <p><strong>No asistidos:</strong> {{ no_asistidos_count }}</p>
+            <p><strong>Sala jurídica:</strong> {{ filtros.sala_juridica|default:'Todas' }}</p>
+            <p><strong>Estudiante:</strong>
+                {% if filtros.estudiante_id %}
+                    {% for estudiante in estudiantes %}
+                        {% if estudiante.id|stringformat:"s" == filtros.estudiante_id|stringformat:"s" %}
+                            {{ estudiante.nombre_completo }}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    Todos
+                {% endif %}
+            </p>
+            <p><strong>Rango fechas:</strong>
+                {% if filtros.fecha_inicio %}{{ filtros.fecha_inicio }}{% else %}Inicio{% endif %}
+                -
+                {% if filtros.fecha_fin %}{{ filtros.fecha_fin }}{% else %}Fin{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-header">Histórico (últimos registros)</div>
+        <div class="card-body">
+            <canvas id="metricasChart" height="160"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ labels|safe }};
+const datosAsistencia = {{ datos_asistencia|safe }};
+const datosInasistencia = {{ datos_inasistencia|safe }};
+
+const ctx = document.getElementById('metricasChart').getContext('2d');
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: 'Asistencia (%)',
+                data: datosAsistencia,
+                borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-success') || '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.08)',
+                tension: 0.2,
+            },
+            {
+                label: 'Inasistencia (%)',
+                data: datosInasistencia,
+                borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-danger') || '#F44336',
+                backgroundColor: 'rgba(244, 67, 54, 0.08)',
+                tension: 0.2,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                suggestedMin: 0,
+                suggestedMax: 100,
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

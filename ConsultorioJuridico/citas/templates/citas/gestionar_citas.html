@@ -1,0 +1,1300 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Gestionar citas{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .content-area {
+        background: none;
+        padding: 0;
+        min-height: auto;
+    }
+
+    .gestionar-layout {
+        display: grid;
+        grid-template-columns: 388px 718px;
+        gap: 40px;
+        justify-content: center;
+    }
+
+    .columna-izquierda {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: 610px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) var(--bg-secondary);
+    }
+
+    /* Paneles izquierda */
+    .panel {
+        width: 388px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 16px;
+        overflow: hidden;
+    }
+
+        .panel-proxima {
+            min-height: 200px;
+        }
+
+        .panel-historial {
+            min-height: 210px;
+        }
+
+        .panel-notificaciones {
+            min-height: 160px;
+        }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        margin-bottom: 15px;
+    }
+
+    .panel-header img {
+        width: 27px;
+        height: 26px;
+    }
+
+    .panel-header span {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        color: var(--text-primary);
+    }
+
+    .panel-inner {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 12px 15px;
+    }
+
+    /* Próxima cita */
+    .cita-codigo {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 18px;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+
+    .cita-detalle {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 20px;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .estado-confirmada { color: #4CAF50 !important; font-weight: 600; }
+    .estado-pendiente { color: #FFC107 !important; font-weight: 600; }
+    .estado-cumplida { color: #2196F3 !important; font-weight: 600; }
+    .estado-cancelada { color: #F44336 !important; font-weight: 600; }
+    .estado-no_asistio { color: #FF5722 !important; font-weight: 600; }
+    .recordatorio-enviado { color: #4CAF50 !important; font-weight: 600; }
+    .recordatorio-fallido { color: #F44336 !important; font-weight: 600; }
+    .recordatorio-pendiente { color: #FFC107 !important; font-weight: 600; }
+
+    .cita-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    .btn-cancelar {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #E9683B;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #E9683B;
+        cursor: pointer;
+    }
+
+    .btn-cancelar:hover { background: rgba(233, 104, 59, 0.15); }
+
+    .btn-posponer {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #865CF0;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #865CF0;
+        cursor: pointer;
+    }
+
+    .btn-confirmar {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #4CAF50;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #4CAF50;
+        cursor: pointer;
+    }
+
+    .btn-confirmar:hover { background: rgba(76, 175, 80, 0.15); }
+
+    /* Historial */
+    .historial-list {
+        overflow-y: auto;
+        max-height: 142px;
+        padding-right: 6px;
+    }
+
+    .historial-item {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 12px 15px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .historial-item:last-child { margin-bottom: 0; }
+
+    .historial-info p {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 20px;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .btn-ver {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #E4EB60;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #E4EB60;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .btn-ver:hover { background: rgba(228, 235, 96, 0.1); }
+
+    /* Panel detalles */
+    .detalles-panel {
+        width: 718px;
+        height: 610px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detalles-titulo {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 29px;
+        color: var(--text-primary);
+        margin: 0 0 20px 0;
+    }
+
+    .detalles-inner {
+        width: 100%;
+        flex: 1;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detalles-vacio {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #4CAF50;
+        font-size: 14px;
+    }
+
+    .detalles-vacio .check-icon {
+        width: 60px;
+        height: 60px;
+        border: 3px solid #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        margin-bottom: 15px;
+    }
+
+    /* Grid de detalles */
+    .detalles-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .detalle-box {
+        width: 100%;
+        min-height: 194px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 20px;
+    }
+
+    .detalle-box-titulo {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        color: var(--text-primary);
+        margin: 0 0 15px 0;
+    }
+
+    .detalle-box-texto {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        line-height: 22px;
+        color: var(--text-secondary);
+        margin: 0 0 6px 0;
+    }
+
+    .detalle-box-aviso {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 18px;
+        color: #4CAF50;
+        margin: 10px 0 0 0;
+    }
+
+    .btn-ingresar {
+        display: inline-block;
+        padding: 8px 25px;
+        background: var(--bg-primary);
+        border: 2px solid #4CAF50;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        color: #4CAF50;
+        text-decoration: none;
+        margin: 10px 0;
+    }
+
+    .btn-ingresar:hover { background: rgba(76, 175, 80, 0.1); }
+
+    /* Botones de acción */
+    .detalle-acciones {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        padding-top: 20px;
+    }
+
+    .btn-accion {
+        width: 140px;
+        height: 35px;
+        background: var(--bg-primary);
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .btn-accion-posponer {
+        border: 2px solid #865CF0;
+        color: #865CF0;
+    }
+
+    .btn-accion-posponer:hover { background: rgba(134, 92, 240, 0.15); }
+
+    .btn-accion-cancelar {
+        border: 2px solid #E9683B;
+        color: #E9683B;
+    }
+
+    .btn-accion-confirmar {
+        border: 2px solid #4CAF50;
+        color: #4CAF50;
+    }
+
+    .btn-accion-confirmar:hover { background: rgba(76, 175, 80, 0.15); }
+
+    .btn-accion-documentos {
+        border: 2px solid #E4EB60;
+        color: #E4EB60;
+    }
+
+    .btn-accion-documentos:hover { background: rgba(228, 235, 96, 0.1); }
+    
+    .btn-accion-asistio {
+        border: 2px solid #4CAF50;
+        color: #4CAF50;
+    }
+
+    .btn-accion-asistio:hover { background: rgba(76, 175, 80, 0.15); }
+
+    .btn-accion-no-asistio {
+        border: 2px solid #FF5722;
+        color: #FF5722;
+    }
+
+    .btn-accion-no-asistio:hover { background: rgba(255, 87, 34, 0.15); }
+
+    .asistencia-label {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 0 0 8px 0;
+    }
+
+    .asistencia-buttons {
+        display: flex;
+        gap: 10px;
+    }
+
+    .detalles-contenido p strong {
+        color: var(--text-primary);
+    }
+
+    .panel-exportar {
+        min-height: 200px;
+    }
+
+    .reporte-export-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .reporte-export-label {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 600;
+        font-size: 12px;
+        line-height: 16px;
+        color: #CCCCCC;
+    }
+
+    .reporte-export-input,
+    .reporte-export-select {
+        width: 100%;
+        height: 34px;
+        background: #000000;
+        border: 2px solid #2F2F2F;
+        box-sizing: border-box;
+        color: #FFFFFF;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+
+    .reporte-export-input:focus,
+    .reporte-export-select:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+
+    .reporte-export-botones {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 6px;
+    }
+
+    .inner-text {
+        color: var(--text-muted);
+        font-size: 14px;
+        padding: 15px;
+        margin: 0;
+    }
+
+    .notificaciones-list {
+        height: 92px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+
+    .notificacion-item {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 76px;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+    }
+
+    .notificacion-item p {
+        margin: 0;
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-size: 12px;
+        line-height: 18px;
+        color: var(--text-secondary);
+    }
+
+    .notificacion-fecha {
+        color: var(--text-muted) !important;
+        font-size: 11px !important;
+        margin-top: 6px !important;
+    }
+
+    /* Modal de cancelacion */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: var(--bg-secondary);
+        border: 2px solid #E9683B;
+        padding: 30px;
+        width: 450px;
+        box-sizing: border-box;
+    }
+
+    .modal-titulo {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--text-primary);
+        margin: 0 0 15px 0;
+    }
+
+    .modal-texto {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 0 0 15px 0;
+    }
+
+    .modal-textarea {
+        width: 100%;
+        min-height: 80px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        color: var(--text-primary);
+        padding: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        resize: vertical;
+        box-sizing: border-box;
+        margin-bottom: 15px;
+    }
+
+    .modal-textarea:focus {
+        outline: none;
+        border-color: #E9683B;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-modal-cerrar {
+        padding: 8px 20px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        color: var(--text-secondary);
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .btn-modal-confirmar {
+        padding: 8px 20px;
+        background: var(--bg-primary);
+        border: 2px solid #E9683B;
+        color: #E9683B;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .btn-modal-confirmar:hover {
+        background: rgba(233, 104, 59, 0.15);
+    }
+
+    .modal-content-reagendar {
+        background: var(--bg-secondary);
+        border: 2px solid #865CF0;
+        padding: 25px;
+        width: 620px;
+        box-sizing: border-box;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-titulo-reagendar {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 18px;
+        color: var(--text-primary);
+        margin: 0 0 12px 0;
+    }
+
+    .horario-actual-info {
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        padding: 10px 12px;
+        margin-bottom: 12px;
+    }
+
+    .horario-actual-info p {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin: 0 0 2px 0;
+    }
+
+    .reagendar-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .reagendar-section-label {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--text-primary);
+        margin: 0 0 6px 0;
+    }
+
+    /* Calendario navegable */
+    .rcal-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    .rcal-nav-btn {
+        background: var(--border);
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        border-radius: 2px;
+    }
+
+    .rcal-nav-btn:hover { background: var(--border-strong); }
+
+    .rcal-today-btn {
+        background: var(--border);
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+        padding: 3px 9px;
+        cursor: pointer;
+        font-size: 11px;
+        font-family: 'Inter', sans-serif;
+        border-radius: 2px;
+    }
+
+    .rcal-today-btn:hover { background: var(--border-strong); }
+
+    .rcal-month-label {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 12px;
+        color: var(--text-primary);
+        margin-left: auto;
+    }
+
+    .rcal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .rcal-day-header {
+        background: var(--bg-tertiary);
+        padding: 4px 2px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        font-family: 'Inter', sans-serif;
+        font-size: 10px;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .rcal-day {
+        background: var(--bg-secondary);
+        padding: 5px 2px;
+        min-height: 28px;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+    }
+
+    .rcal-day:hover { background: var(--hover-overlay); }
+    .rcal-day.other-month { color: var(--text-muted); cursor: default; opacity: 0.5; }
+    .rcal-day.other-month:hover { background: var(--bg-secondary); }
+    .rcal-day.today { background: var(--bg-tertiary); }
+
+    .rcal-day.has-slots::after {
+        content: '';
+        display: block;
+        width: 4px;
+        height: 4px;
+        background: #865CF0;
+        border-radius: 50%;
+        margin: 2px auto 0;
+    }
+
+    .rcal-day.selected {
+        background: #865CF0;
+        color: #FFFFFF;
+    }
+
+    .rcal-day.selected::after { background: #FFFFFF; }
+
+    .rhora-slots {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .rhora-slot-btn {
+        padding: 7px 10px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 2px;
+        text-align: center;
+    }
+
+    .rhora-slot-btn:hover { border-color: #865CF0; color: #865CF0; }
+
+    .rhora-slot-btn.selected {
+        background: #865CF0;
+        color: #FFFFFF;
+        border-color: #865CF0;
+        font-weight: 700;
+    }
+
+    .rhora-msg {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .btn-modal-reagendar {
+        padding: 8px 20px;
+        background: var(--bg-primary);
+        border: 2px solid #865CF0;
+        color: #865CF0;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .btn-modal-reagendar:hover {
+        background: rgba(134, 92, 240, 0.15);
+    }
+
+    .btn-modal-reagendar:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gestionar-layout">
+
+    <!-- Columna izquierda -->
+    <div class="columna-izquierda" id="realtime-citas">
+
+        <!-- Notificaciones (solo secretaria) -->
+        {% if user.rol == 'secretaria' %}
+        <div class="panel panel-notificaciones">
+            <div class="panel-header">
+                <img src="/static/img/icono_comunicacion.png" alt="" class="theme-icon">
+                <span>Notificaciones</span>
+            </div>
+            <div class="notificaciones-list">
+                {% if notificaciones %}
+                    {% for notificacion in notificaciones %}
+                    <div class="notificacion-item">
+                        <p>{{ notificacion.mensaje }}</p>
+                        <p class="notificacion-fecha">{{ notificacion.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="inner-text">No hay notificaciones.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Próxima cita -->
+        <div class="panel panel-proxima">
+            <div class="panel-header">
+                <img src="/static/img/icono_cita.png" alt="" class="theme-icon">
+                <span>Próxima cita</span>
+            </div>
+            <div class="panel-inner">
+                {% if proxima_cita %}
+                <p class="cita-codigo">Codigo del caso: {% if proxima_cita.caso %}{{ proxima_cita.caso.codigo }}{% else %}Sin caso{% endif %}</p>
+                <p class="cita-detalle">Fecha: {{ proxima_cita.horario.fecha|date:"d/m/Y" }}</p>
+                <p class="cita-detalle">Hora: {{ proxima_cita.horario.hora_inicio|time:"H:i" }}</p>
+                <p class="cita-detalle">Estado: <span class="estado-{{ proxima_cita.estado }}">{{ proxima_cita.get_estado_display }}</span></p>
+{% if proxima_cita.estado == 'pendiente' and proxima_cita.requiere_atencion_automatico_15 %}
+
+
+                    <p class="cita-detalle" style="color:#FF5722; font-weight:600;">Pendiente de confirmar — Requiere atención</p>
+                    <p class="cita-detalle">Sin confirmación</p>
+                {% endif %}
+
+                <p class="cita-detalle">Tipo: {{ proxima_cita.get_tipo_atencion_display }}</p>
+                <p class="cita-detalle">
+                    Recordatorio:
+                    {% if proxima_cita.ultimo_recordatorio %}
+                        <span class="recordatorio-{{ proxima_cita.ultimo_recordatorio.estado }}">
+                            {{ proxima_cita.ultimo_recordatorio.get_estado_display }} ({{ proxima_cita.ultimo_recordatorio.get_canal_display }})
+                        </span>
+                    {% else %}
+                        <span class="recordatorio-pendiente">Sin envíos registrados</span>
+                    {% endif %}
+                </p>
+                <div class="cita-buttons">
+                    {% if user.rol != 'profesor' and user.rol != 'estudiante' %}
+                    <button type="button" class="btn-cancelar" data-cita-pk="{{ proxima_cita.pk }}" onclick="abrirModalCancelar(this.dataset.citaPk)">Cancelar</button>
+                    {% endif %}
+                    {% if proxima_cita.puede_confirmar %}
+                    <form method="post" action="{% url 'confirmar_cita' proxima_cita.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-confirmar">Confirmar</button>
+                    </form>
+                    {% else %}
+                    {% if user.rol != 'profesor' and user.rol != 'estudiante' %}
+                    <button type="button" class="btn-posponer" data-cita-pk="{{ proxima_cita.pk }}" data-horario-texto="{{ proxima_cita.horario.fecha|date:'d/m/Y' }} — {{ proxima_cita.horario.hora_inicio|time:'H:i' }}" onclick="abrirModalReagendar(this.dataset.citaPk, this.dataset.horarioTexto)">Reagendar</button>
+                    {% endif %}
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="inner-text">No tiene citas programadas.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Historial de citas -->
+        <div class="panel panel-historial">
+            <div class="panel-header">
+                <img src="/static/img/icono_historial.png" alt="" class="theme-icon">
+                <span>Historial de citas</span>
+            </div>
+
+          <p class="cita-detalle" id="hu14-contador-requiere-atencion" style="color:#FF5722; font-weight:600; display:none;">
+    Pendiente de confirmar — Requiere atención:
+    <span id="hu14-contador-requiere-atencion-num">0</span>
+</p>
+
+<div class="historial-list">
+                    <!-- Filtros -->
+                    <form method="get" style="padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <select name="estado" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+                            <option value="">Todos los estados</option>
+                            {% for e in estados_choices %}
+                            <option value="{{ e }}" {% if filtros.estado == e %}selected{% endif %}>{{ e|capfirst }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <input type="date" name="fecha_inicio" value="{{ filtros.fecha_inicio }}" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+                        <input type="date" name="fecha_fin" value="{{ filtros.fecha_fin }}" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+
+                        <select name="sala_juridica" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+                            <option value="">Todas las salas</option>
+                            {% for s in salas_choices %}
+                            <option value="{{ s }}" {% if filtros.sala_juridica == s %}selected{% endif %}>{{ s|capfirst }}</option>
+                            {% endfor %}
+                        </select>
+
+                        {% if beneficiarios %}
+                        <select name="beneficiario" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+                            <option value="">Todos los beneficiarios</option>
+                            {% for b in beneficiarios %}
+                            <option value="{{ b.pk }}" {% if filtros.beneficiario == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.nombre_completo }}</option>
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+
+                        <div style="margin-left:auto;display:flex;gap:8px;">
+                            <button type="submit" class="btn-ingresar">Aplicar</button>
+                            <a href="{% url 'gestionar_citas' %}" class="btn-ingresar" style="border-color:#E9683B;color:#E9683B;">Limpiar</a>
+                        </div>
+                    </form>
+                {% if historial_citas %}
+                    {% for cita in historial_citas %}
+                    <div class="historial-item">
+                        <div class="historial-info">
+                            {% if es_admin %}
+                                <p>
+                                    Beneficiario: {{ cita.beneficiario.nombre_completo }}
+                                    <a href="{% url 'historial_usuario' cita.beneficiario.pk %}" class="btn-ver" style="margin-left:8px;padding:6px 10px;height:auto;border:2px solid #E4EB60;font-size:12px;">Historial</a>
+                                </p>
+                                {% if cita.caso and cita.caso.estudiante_asignado %}
+                                <p>
+                                    Estudiante asignado: {{ cita.caso.estudiante_asignado.nombre_completo }}
+                                    <a href="{% url 'historial_usuario' cita.caso.estudiante_asignado.pk %}" class="btn-ver" style="margin-left:8px;padding:6px 10px;height:auto;border:2px solid #E4EB60;font-size:12px;">Historial</a>
+                                </p>
+                                {% endif %}
+                            {% endif %}
+                            <p>Fecha: {{ cita.horario.fecha|date:"d/m/Y" }} a las {{ cita.horario.hora_inicio|time:"H:i" }}</p>
+                            <p>Tipo: {{ cita.get_tipo_atencion_display }}</p>
+                            <p>Estado: <span class="estado-{{ cita.estado }}">{{ cita.get_estado_display }}</span></p>
+                            {% if cita.estado == 'pendiente' and cita.requiere_atencion_automatico_15 %}
+                                <p class="cita-detalle" style="color:#FF5722; font-weight:600;">Pendiente de confirmar — Requiere atención</p>
+                                <p class="cita-detalle">Sin confirmación</p>
+                            {% endif %}
+                            {% if cita.ultimo_recordatorio %}
+                            <p>Recordatorio: <span class="recordatorio-{{ cita.ultimo_recordatorio.estado }}">{{ cita.ultimo_recordatorio.get_estado_display }}</span></p>
+                            {% endif %}
+                        </div>
+                        <a href="?cita_id={{ cita.pk }}" class="btn-ver">Ver</a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="inner-text">No tiene historial de citas.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if es_admin %}
+        <div class="panel panel-exportar">
+            <div class="panel-header">
+                <img src="/static/img/icono_comunicacion.png" alt="">
+                <span>Exportar reporte de asistencia</span>
+            </div>
+            <div class="panel-inner">
+                <form method="get" class="reporte-export-form">
+                    <label class="reporte-export-label" for="fecha_inicio">Desde</label>
+                    <input class="reporte-export-input" type="date" id="fecha_inicio" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+
+                    <label class="reporte-export-label" for="fecha_fin">Hasta</label>
+                    <input class="reporte-export-input" type="date" id="fecha_fin" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+
+                    <label class="reporte-export-label" for="sala_juridica">Sala jurídica</label>
+                    <select class="reporte-export-select" id="sala_juridica" name="sala_juridica">
+                        <option value="" {% if not request.GET.sala_juridica %}selected{% endif %}>Todas las salas</option>
+                        <option value="civil" {% if request.GET.sala_juridica == 'civil' %}selected{% endif %}>Civil</option>
+                        <option value="laboral" {% if request.GET.sala_juridica == 'laboral' %}selected{% endif %}>Laboral</option>
+                        <option value="penal" {% if request.GET.sala_juridica == 'penal' %}selected{% endif %}>Penal</option>
+                    </select>
+
+                    <div class="reporte-export-botones">
+                        <button type="submit" class="btn-accion btn-accion-documentos" formaction="{% url 'reportes:exportar_pdf' %}">Descargar PDF</button>
+                        <button type="submit" class="btn-accion btn-accion-confirmar" formaction="{% url 'reportes:exportar_excel' %}">Descargar Excel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+
+    </div>
+
+    <!-- Panel derecho: Detalles -->
+    <div class="detalles-panel">
+        {% if cita_seleccionada %}
+        <p class="detalles-titulo">Detalles de la cita - <span class="estado-{{ cita_seleccionada.estado }}">{{ cita_seleccionada.get_estado_display }}</span></p>
+        <div class="detalles-inner">
+            <div class="detalles-grid">
+
+                <!-- Información general -->
+                <div class="detalle-box">
+                    <p class="detalle-box-titulo">Información general</p>
+                    <p class="detalle-box-texto">Tipo de atención: {{ cita_seleccionada.get_tipo_atencion_display }}</p>
+                    <p class="detalle-box-texto">Fecha: {{ cita_seleccionada.horario.fecha|date:"d/m/Y" }}</p>
+                    <p class="detalle-box-texto">Hora: {{ cita_seleccionada.horario.hora_inicio|time:"H:i" }} - {{ cita_seleccionada.horario.hora_fin|time:"H:i" }}</p>
+                </div>
+
+                <!-- Información de acceso -->
+                <div class="detalle-box">
+                    <p class="detalle-box-titulo">Información de acceso</p>
+                    {% if cita_seleccionada.tipo_atencion == 'virtual' %}
+                        <p class="detalle-box-texto">Enlace de la reunión</p>
+                        <a href="#" class="btn-ingresar">Ingresar</a>
+                        <p class="detalle-box-aviso">Por favor conectarse 10 minutos antes</p>
+                    {% elif cita_seleccionada.tipo_atencion == 'telefonica' %}
+                        <p class="detalle-box-texto">Modalidad: Llamada telefónica</p>
+                        <p class="detalle-box-texto">Se le contactará al número registrado</p>
+                        <p class="detalle-box-aviso">Por favor estar disponible a la hora de la cita</p>
+                    {% elif cita_seleccionada.tipo_atencion == 'presencial' %}
+                        <p class="detalle-box-texto">Lugar: Consultorio Jurídico ICESI</p>
+                        <p class="detalle-box-texto">Fecha: {{ cita_seleccionada.horario.fecha|date:"d/m/Y" }}</p>
+                        <p class="detalle-box-texto">Hora: {{ cita_seleccionada.horario.hora_inicio|time:"H:i" }}</p>
+                        <p class="detalle-box-aviso">Por favor llegar 10 minutos antes</p>
+                    {% endif %}
+                </div>
+
+                <!-- Información del caso -->
+                <div class="detalle-box">
+                    <p class="detalle-box-titulo">Información del caso</p>
+                    <p class="detalle-box-texto">Número de caso: {% if cita_seleccionada.caso %}{{ cita_seleccionada.caso.codigo }}{% else %}Sin caso{% endif %}</p>
+                    {% if cita_seleccionada.motivo %}
+                    <p class="detalle-box-texto">Descripción: {{ cita_seleccionada.motivo }}</p>
+                    {% endif %}
+                    <p class="detalle-box-texto">Estado de la cita: <span class="estado-{{ cita_seleccionada.estado }}">{{ cita_seleccionada.get_estado_display }}</span></p>
+                    <p class="detalle-box-texto">
+                        Estado del recordatorio:
+                        {% if cita_seleccionada.ultimo_recordatorio %}
+                            <span class="recordatorio-{{ cita_seleccionada.ultimo_recordatorio.estado }}">
+                                {{ cita_seleccionada.ultimo_recordatorio.get_estado_display }} ({{ cita_seleccionada.ultimo_recordatorio.get_canal_display }})
+                            </span>
+                        {% else %}
+                            <span class="recordatorio-pendiente">Sin envíos registrados</span>
+                        {% endif %}
+                    </p>
+                    {% if cita_seleccionada.ultimo_recordatorio and cita_seleccionada.ultimo_recordatorio.mensaje_error %}
+                    <p class="detalle-box-texto">Detalle: {{ cita_seleccionada.ultimo_recordatorio.mensaje_error }}</p>
+                    {% endif %}
+                    {% if cita_seleccionada.caso %}
+                    <p class="detalle-box-texto">Sala jurídica: {{ cita_seleccionada.caso.get_sala_juridica_display }}</p>
+                    <p class="detalle-box-texto">Estado del caso: <span class="estado-{{ cita_seleccionada.caso.estado }}">{{ cita_seleccionada.caso.get_estado_display }}</span></p>
+                    {% endif %}
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="detalle-acciones">
+                    {% if es_admin and cita_seleccionada.estado == 'confirmada' %}
+                    <p class="asistencia-label">Cambiar estado de la cita:</p>
+                    <div class="asistencia-buttons">
+                        <form method="post" action="{% url 'marcar_asistencia' cita_seleccionada.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="accion" value="asistio">
+                            <button type="submit" class="btn-accion btn-accion-asistio">Asistió</button>
+                        </form>
+                        <form method="post" action="{% url 'marcar_asistencia' cita_seleccionada.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="accion" value="no_asistio">
+                            <button type="submit" class="btn-accion btn-accion-no-asistio">No asistió</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                    {% if cita_seleccionada.puede_confirmar and user.rol != 'profesor' and user.rol != 'estudiante' %}
+                    <form method="post" action="{% url 'confirmar_cita' cita_seleccionada.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-accion btn-accion-confirmar">Confirmar</button>
+                    </form>
+                    {% endif %}
+                    {% if cita_seleccionada.puede_reagendar and user.rol != 'profesor' and user.rol != 'estudiante' %}
+                    <button type="button" class="btn-accion btn-accion-posponer" data-cita-pk="{{ cita_seleccionada.pk }}" data-horario-texto="{{ cita_seleccionada.horario.fecha|date:'d/m/Y' }} — {{ cita_seleccionada.horario.hora_inicio|time:'H:i' }}" onclick="abrirModalReagendar(this.dataset.citaPk, this.dataset.horarioTexto)">Reagendar</button>
+                    {% endif %}
+                    {% if cita_seleccionada.puede_cancelar and user.rol != 'profesor' and user.rol != 'estudiante' %}
+                    <button type="button" class="btn-accion btn-accion-cancelar" data-cita-pk="{{ cita_seleccionada.pk }}" onclick="abrirModalCancelar(this.dataset.citaPk)">Cancelar</button>
+                    {% endif %}
+                    <button class="btn-accion btn-accion-documentos">Documentos</button>
+                </div>
+
+            </div>
+        </div>
+        {% else %}
+        <p class="detalles-titulo">Detalles de la cita</p>
+        <div class="detalles-inner">
+            <div class="detalles-vacio">
+                <div class="check-icon">✓</div>
+                <p>Seleccione una cita desde el historial para ver los detalles</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+<!-- Modal de cancelacion con motivo -->
+<div id="modal-cancelar" class="modal-overlay">
+    <div class="modal-content">
+        <p class="modal-titulo">Cancelar cita</p>
+        <p class="modal-texto">¿Está seguro de que desea cancelar esta cita? El horario quedará liberado.</p>
+        <form id="form-cancelar" method="post">
+            {% csrf_token %}
+            <textarea name="motivo" class="modal-textarea" placeholder="Motivo de la cancelación (opcional)" maxlength="500"></textarea>
+            <div class="modal-buttons">
+                <button type="button" class="btn-modal-cerrar" onclick="cerrarModalCancelar()">Volver</button>
+                <button type="submit" class="btn-modal-confirmar">Confirmar cancelación</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de reagendamiento -->
+<div id="modal-reagendar" class="modal-overlay">
+    <div class="modal-content-reagendar">
+        <p class="modal-titulo-reagendar">Reagendar cita</p>
+        <div class="horario-actual-info">
+            <p><strong style="color:var(--text-primary);">Horario actual:</strong></p>
+            <p id="horario-actual-texto">—</p>
+        </div>
+        <form id="form-reagendar" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="nuevo_horario_id" id="input-nuevo-horario-id">
+            <div class="reagendar-grid">
+                <!-- Columna izquierda: calendario -->
+                <div>
+                    <p class="reagendar-section-label">Selecciona la fecha:</p>
+                    <div class="rcal-nav">
+                        <button type="button" class="rcal-nav-btn" id="rcalPrev">‹</button>
+                        <button type="button" class="rcal-nav-btn" id="rcalNext">›</button>
+                        <button type="button" class="rcal-today-btn" id="rcalToday">Hoy</button>
+                        <span class="rcal-month-label" id="rcalMonthLabel"></span>
+                    </div>
+                    <div class="rcal-grid" id="rcalGrid" data-horarios='[{% for h in horarios_disponibles %}{"fecha":"{{ h.fecha|date:"Y-m-d" }}","horaInicio":"{{ h.hora_inicio|time:"H:i" }}","horaFin":"{{ h.hora_fin|time:"H:i" }}","id":{{ h.pk }}}{% if not forloop.last %},{% endif %}{% endfor %}]'></div>
+                </div>
+                <!-- Columna derecha: slots -->
+                <div>
+                    <p class="reagendar-section-label">Selecciona la hora:</p>
+                    <div id="rhoraContainer">
+                        <p class="rhora-msg">Seleccione un día en el calendario</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-buttons" style="margin-top: 18px;">
+                <button type="button" class="btn-modal-cerrar" onclick="cerrarModalReagendar()">Volver</button>
+                <button type="submit" class="btn-modal-reagendar" id="btnConfirmarReagendar" disabled>Confirmar reagendamiento</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% include 'partials/_realtime_citas.html' with target_selector='#realtime-citas' %}
+
+<script>
+    function abrirModalCancelar(citaPk) {
+        var modal = document.getElementById('modal-cancelar');
+        var form = document.getElementById('form-cancelar');
+        form.action = '/citas/' + citaPk + '/cancelar/';
+        modal.classList.add('active');
+    }
+    function cerrarModalCancelar() {
+        var modal = document.getElementById('modal-cancelar');
+        modal.classList.remove('active');
+        document.querySelector('#form-cancelar textarea').value = '';
+    }
+    document.getElementById('modal-cancelar').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModalCancelar();
+    });
+
+    /* ───── Reagendamiento con calendario ───── */
+    (function() {
+        var rcalGrid = document.getElementById('rcalGrid');
+        if (!rcalGrid) return;
+
+        var horariosDisponibles = JSON.parse(rcalGrid.getAttribute('data-horarios') || '[]');
+        var fechasConSlots = {};
+        horariosDisponibles.forEach(function(h) { fechasConSlots[h.fecha] = true; });
+
+        var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+        var diasSemana = ['lun','mar','mié','jue','vie','sáb','dom'];
+
+        var currentMonth = new Date().getMonth();
+        var currentYear = new Date().getFullYear();
+        var selectedDate = null;
+        var selectedHorarioId = null;
+
+        function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+        function renderCalendar() {
+            document.getElementById('rcalMonthLabel').textContent = meses[currentMonth] + ' de ' + currentYear;
+
+            var firstDay = new Date(currentYear, currentMonth, 1);
+            var startDay = firstDay.getDay() - 1;
+            if (startDay < 0) startDay = 6;
+
+            var daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            var daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            var html = '';
+            diasSemana.forEach(function(d) { html += '<div class="rcal-day-header">' + d + '</div>'; });
+
+            for (var i = startDay - 1; i >= 0; i--) {
+                html += '<div class="rcal-day other-month">' + (daysInPrevMonth - i) + '</div>';
+            }
+
+            var today = new Date();
+            for (var d = 1; d <= daysInMonth; d++) {
+                var dateStr = currentYear + '-' + pad(currentMonth + 1) + '-' + pad(d);
+                var cls = 'rcal-day';
+                if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) cls += ' today';
+                if (fechasConSlots[dateStr]) cls += ' has-slots';
+                if (selectedDate === dateStr) cls += ' selected';
+                html += '<div class="' + cls + '" data-date="' + dateStr + '">' + d + '</div>';
+            }
+
+            var totalCells = startDay + daysInMonth;
+            var remaining = (7 - (totalCells % 7)) % 7;
+            for (var i = 1; i <= remaining; i++) {
+                html += '<div class="rcal-day other-month">' + i + '</div>';
+            }
+
+            rcalGrid.innerHTML = html;
+
+            rcalGrid.querySelectorAll('.rcal-day:not(.other-month)').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    if (!fechasConSlots[this.dataset.date]) return;
+                    selectedDate = this.dataset.date;
+                    selectedHorarioId = null;
+                    document.getElementById('input-nuevo-horario-id').value = '';
+                    document.getElementById('btnConfirmarReagendar').disabled = true;
+                    renderCalendar();
+                    renderHoraSlots();
+                });
+            });
+        }
+
+        function renderHoraSlots() {
+            var container = document.getElementById('rhoraContainer');
+
+            if (!selectedDate) {
+                container.innerHTML = '<p class="rhora-msg">Seleccione un día en el calendario</p>';
+                return;
+            }
+
+            var slotsDelDia = horariosDisponibles.filter(function(h) {
+                return h.fecha === selectedDate;
+            });
+
+            if (slotsDelDia.length === 0) {
+                container.innerHTML = '<p class="rhora-msg">No hay horarios disponibles para esta fecha</p>';
+                return;
+            }
+
+            var html = '<div class="rhora-slots">';
+            slotsDelDia.forEach(function(slot) {
+                var cls = 'rhora-slot-btn';
+                if (selectedHorarioId === slot.id) cls += ' selected';
+                html += '<button type="button" class="' + cls + '" data-id="' + slot.id + '">';
+                html += slot.horaInicio + ' a ' + slot.horaFin;
+                html += '</button>';
+            });
+            html += '</div>';
+
+            container.innerHTML = html;
+
+            container.querySelectorAll('.rhora-slot-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    selectedHorarioId = parseInt(this.dataset.id);
+                    document.getElementById('input-nuevo-horario-id').value = selectedHorarioId;
+                    document.getElementById('btnConfirmarReagendar').disabled = false;
+                    renderHoraSlots();
+                });
+            });
+        }
+
+        document.getElementById('rcalPrev').addEventListener('click', function() {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+        });
+
+        document.getElementById('rcalNext').addEventListener('click', function() {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar();
+        });
+
+        document.getElementById('rcalToday').addEventListener('click', function() {
+            var t = new Date();
+            currentMonth = t.getMonth();
+            currentYear = t.getFullYear();
+            renderCalendar();
+        });
+
+        window.abrirModalReagendar = function(citaPk, horarioActualTexto) {
+            var modal = document.getElementById('modal-reagendar');
+            var form = document.getElementById('form-reagendar');
+            form.action = '/citas/' + citaPk + '/reagendar/';
+            document.getElementById('horario-actual-texto').textContent = horarioActualTexto;
+            selectedDate = null;
+            selectedHorarioId = null;
+            document.getElementById('input-nuevo-horario-id').value = '';
+            document.getElementById('btnConfirmarReagendar').disabled = true;
+            renderCalendar();
+            renderHoraSlots();
+            modal.classList.add('active');
+        };
+
+        window.cerrarModalReagendar = function() {
+            document.getElementById('modal-reagendar').classList.remove('active');
+        };
+
+        document.getElementById('modal-reagendar').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModalReagendar();
+        });
+
+        renderCalendar();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,273 @@
+<script>
+(function() {
+    const url = "{% url 'api_citas_estado_actual' %}" + window.location.search;
+    const container = document.querySelector("{{ target_selector }}");
+    const userRole = "{{ request.user.rol|default:''|escapejs }}";
+    const canExportReports = userRole === 'administrador' || userRole === 'secretaria';
+
+    if (!container) {
+        return;
+    }
+
+    function buildNotificacionesHtml(esSecretaria, notificaciones) {
+        if (!esSecretaria) {
+            return '';
+        }
+
+        if (!notificaciones || notificaciones.length === 0) {
+            return `
+                <div class="panel panel-notificaciones">
+                    <div class="panel-header">
+                        <img src="/static/img/icono_comunicacion.png" alt="">
+                        <span>Notificaciones</span>
+                    </div>
+                    <div class="notificaciones-list">
+                        <p class="inner-text">No hay notificaciones.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        const items = notificaciones.map(notificacion => `
+            <div class="notificacion-item">
+                <p>${notificacion.mensaje}</p>
+                <p class="notificacion-fecha">${notificacion.fecha_creacion}</p>
+            </div>
+        `).join('');
+
+        return `
+            <div class="panel panel-notificaciones">
+                <div class="panel-header">
+                    <img src="/static/img/icono_comunicacion.png" alt="">
+                    <span>Notificaciones</span>
+                </div>
+                <div class="notificaciones-list">
+                    ${items}
+                </div>
+            </div>
+        `;
+    }
+
+    function buildProximaCitaHtml(cita) {
+        if (!cita) {
+            return `
+                <div class="panel panel-proxima">
+                    <div class="panel-header">
+                        <img src="/static/img/icono_cita.png" alt="">
+                        <span>Próxima cita</span>
+                    </div>
+                    <div class="panel-inner">
+                        <p class="inner-text">No tiene citas programadas.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="panel panel-proxima">
+                <div class="panel-header">
+                    <img src="/static/img/icono_cita.png" alt="">
+                    <span>Próxima cita</span>
+                </div>
+                <div class="panel-inner">
+                    ${cita.caso_codigo ? `<p class="cita-codigo">Codigo del caso: ${cita.caso_codigo}</p>` : `<p class="cita-codigo">Sin caso</p>`}
+                    ${cita.beneficiario ? `<p class="cita-detalle">Beneficiario: ${cita.beneficiario}</p>` : ''}
+                    <p class="cita-detalle">Fecha: ${cita.fecha}</p>
+                    <p class="cita-detalle">Hora: ${cita.hora}</p>
+                    <p class="cita-detalle">Estado: <span class="estado-${cita.estado}">${cita.estado_display}</span></p>
+                    ${cita.requiere_atencion ? `<p class="cita-detalle" style="color:#FF5722; font-weight:600;">Pendiente de confirmar &mdash; Requiere atención</p><p class="cita-detalle">Sin confirmación</p>` : ''}
+                    <p class="cita-detalle">Tipo: ${cita.tipo_atencion}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function buildHistorialHtml(citas) {
+        if (!citas || citas.length === 0) {
+            return `
+                <div class="panel panel-historial">
+                    <div class="panel-header">
+                        <img src="/static/img/icono_historial.png" alt="">
+                        <span>Historial de citas</span>
+                    </div>
+                    <div class="historial-list">
+                        <p class="inner-text">No tiene historial de citas.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        const requiereAtencionCount = citas.filter(
+            c => c && c.estado === 'pendiente' && c.requiere_atencion
+        ).length;
+
+        const contadorHtml = requiereAtencionCount > 0
+            ? `<p class="cita-detalle" style="color:#FF5722; font-weight:600;">Pendiente de confirmar — Requiere atención: ${requiereAtencionCount}</p>`
+            : '';
+
+        const items = citas.map(cita => `
+            <div class="historial-item">
+                <div class="historial-info">
+                    ${cita.beneficiario ? `<p>Beneficiario: ${cita.beneficiario} <a href="/usuarios/${cita.beneficiario_id}/historial/" class="btn-ver" style="margin-left:8px;padding:6px 10px;height:auto;border:2px solid #E4EB60;font-size:12px;">Historial</a></p>` : ''}
+                    <p>Fecha: ${cita.fecha}</p>
+                    <p>Tipo: ${cita.tipo_atencion}</p>
+                    <p>Estado: <span class="estado-${cita.estado}">${cita.estado_display}</span></p>
+
+                    ${cita.estado === 'pendiente' && cita.requiere_atencion
+                        ? `<p class="cita-detalle" style="color:#FF5722; font-weight:600;">Pendiente de confirmar — Requiere atención</p><p class="cita-detalle">Sin confirmación</p>`
+                        : ''}
+                </div>
+
+                <div style="display:flex;gap:8px;flex-direction:column;">
+                    <a href="?cita_id=${cita.id}" class="btn-ver">Ver</a>
+
+                    ${cita.estudiante_asignado_id
+                        ? `<a href="/usuarios/${cita.estudiante_asignado_id}/historial/" class="btn-ver" style="border-color:#E4EB60;padding:6px 10px;height:auto;font-size:12px;">Historial estudiante</a>`
+                        : ''}
+                </div>
+            </div>
+        `).join('');
+
+        const params = new URLSearchParams(window.location.search);
+
+        const selectedEstado = params.get('estado') || '';
+        const selectedFechaInicio = params.get('fecha_inicio') || '';
+        const selectedFechaFin = params.get('fecha_fin') || '';
+        const selectedSala = params.get('sala_juridica') || '';
+
+        return `
+            <div class="panel panel-historial">
+                <div class="panel-header">
+                    <img src="/static/img/icono_historial.png" alt="">
+                    <span>Historial de citas</span>
+                </div>
+
+                <div class="historial-list">
+
+                    ${contadorHtml}
+
+                    <form method="get" style="padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+
+                        <select name="estado" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente" ${selectedEstado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="confirmada" ${selectedEstado === 'confirmada' ? 'selected' : ''}>Confirmada</option>
+                            <option value="cumplida" ${selectedEstado === 'cumplida' ? 'selected' : ''}>Cumplida</option>
+                            <option value="no_asistio" ${selectedEstado === 'no_asistio' ? 'selected' : ''}>No asistió</option>
+                            <option value="cancelada" ${selectedEstado === 'cancelada' ? 'selected' : ''}>Cancelada</option>
+                        </select>
+
+                        <input
+                            type="date"
+                            name="fecha_inicio"
+                            value="${selectedFechaInicio}"
+                            style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);"
+                        >
+
+                        <input
+                            type="date"
+                            name="fecha_fin"
+                            value="${selectedFechaFin}"
+                            style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);"
+                        >
+
+                        <select name="sala_juridica" style="height:34px;padding:4px;border:2px solid var(--border);background:var(--bg-secondary);color:var(--text-primary);">
+                            <option value="">Todas las salas</option>
+                            <option value="civil" ${selectedSala === 'civil' ? 'selected' : ''}>Civil</option>
+                            <option value="laboral" ${selectedSala === 'laboral' ? 'selected' : ''}>Laboral</option>
+                            <option value="penal" ${selectedSala === 'penal' ? 'selected' : ''}>Penal</option>
+                            <option value="publico" ${selectedSala === 'publico' ? 'selected' : ''}>Público</option>
+                            <option value="familia" ${selectedSala === 'familia' ? 'selected' : ''}>Familia</option>
+                        </select>
+
+                        <div style="margin-left:auto;display:flex;gap:8px;">
+                            <button type="submit" class="btn-ingresar">Aplicar</button>
+
+                            <a href="/gestionar-citas/" class="btn-ingresar" style="border-color:#E9683B;color:#E9683B;">
+                                Limpiar
+                            </a>
+                        </div>
+                    </form>
+
+                    ${items}
+                </div>
+            </div>
+        `;
+    }
+
+    function buildExportarHtml() {
+        if (!canExportReports) {
+            return '';
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const selectedFechaInicio = params.get('fecha_inicio') || '';
+        const selectedFechaFin = params.get('fecha_fin') || '';
+        const selectedSala = params.get('sala_juridica') || '';
+
+        return `
+            <div class="panel panel-exportar">
+                <div class="panel-header">
+                    <img src="/static/img/icono_comunicacion.png" alt="">
+                    <span>Exportar reporte de asistencia</span>
+                </div>
+                <div class="panel-inner">
+                    <form method="get" class="reporte-export-form">
+                        <label class="reporte-export-label" for="fecha_inicio">Desde</label>
+                        <input class="reporte-export-input" type="date" id="fecha_inicio" name="fecha_inicio" value="${selectedFechaInicio}">
+
+                        <label class="reporte-export-label" for="fecha_fin">Hasta</label>
+                        <input class="reporte-export-input" type="date" id="fecha_fin" name="fecha_fin" value="${selectedFechaFin}">
+
+                        <label class="reporte-export-label" for="sala_juridica">Sala jurídica</label>
+                        <select class="reporte-export-select" id="sala_juridica" name="sala_juridica">
+                            <option value="" ${selectedSala === '' ? 'selected' : ''}>Todas las salas</option>
+                            <option value="civil" ${selectedSala === 'civil' ? 'selected' : ''}>Civil</option>
+                            <option value="laboral" ${selectedSala === 'laboral' ? 'selected' : ''}>Laboral</option>
+                            <option value="penal" ${selectedSala === 'penal' ? 'selected' : ''}>Penal</option>
+                        </select>
+
+                        <div class="reporte-export-botones">
+                            <button type="submit" class="btn-accion btn-accion-documentos" formaction="/reportes/exportar/pdf/">Descargar PDF</button>
+                            <button type="submit" class="btn-accion btn-accion-confirmar" formaction="/reportes/exportar/excel/">Descargar Excel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+    }
+
+    function render(data) {
+        container.innerHTML = (
+            buildNotificacionesHtml(data.es_secretaria, data.notificaciones) +
+            buildProximaCitaHtml(data.proxima_cita) +
+            buildHistorialHtml(data.historial_citas) +
+            buildExportarHtml()
+        );
+    }
+
+    async function fetchCitas() {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const data = await response.json();
+            render(data);
+
+        } catch (error) {
+            console.error('Error al cargar el estado de las citas:', error);
+        }
+    }
+
+    fetchCitas();
+    setInterval(fetchCitas, 5000);
+
+})();
+</script>

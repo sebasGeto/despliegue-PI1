@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Buró{% endblock %} | Consultorio Jurídico ICESI</title>
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #121212;
+            --bg-tertiary: #1a1a2e;
+            --bg-elevated: #252540;
+            --text-primary: #FFFFFF;
+            --text-secondary: #CCCCCC;
+            --text-muted: #888888;
+            --border: #2F2F2F;
+            --border-strong: #4a4a4a;
+            --accent-primary: #5454E9;
+            --accent-secondary: #E4EB60;
+            --accent-success: #4CAF50;
+            --accent-danger: #F44336;
+            --accent-warning: #FFC107;
+            --hover-overlay: rgba(255, 255, 255, 0.1);
+            --gradient-band: linear-gradient(to bottom, #000000 0%, #5454E9 5%, #5454E9 45%, #121212 45%, #121212 100%);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F5F5F5;
+            --bg-tertiary: #EEEEEE;
+            --bg-elevated: #E0E0E0;
+            --text-primary: #121212;
+            --text-secondary: #444444;
+            --text-muted: #FFFFFF;
+            --border: #DDDDDD;
+            --border-strong: #BBBBBB;
+            --accent-primary: #4040C0;
+            --accent-secondary: #A8AE2A;
+            --accent-success: #2E7D32;
+            --accent-danger: #C62828;
+            --accent-warning: #E65100;
+            --hover-overlay: rgba(0, 0, 0, 0.06);
+            --gradient-band: linear-gradient(to bottom, #FFFFFF 0%, #5454E9 5%, #5454E9 45%, #F5F5F5 45%, #F5F5F5 100%);
+        }
+
+        @media (prefers-color-scheme: light) {
+            [data-theme="system"] {
+                --bg-primary: #FFFFFF;
+                --bg-secondary: #F5F5F5;
+                --bg-tertiary: #EEEEEE;
+                --bg-elevated: #E0E0E0;
+                --text-primary: #121212;
+                --text-secondary: #444444;
+                --text-muted: #777777;
+                --border: #DDDDDD;
+                --border-strong: #BBBBBB;
+                --accent-primary: #4040C0;
+                --accent-secondary: #A8AE2A;
+                --accent-success: #2E7D32;
+                --accent-danger: #C62828;
+                --accent-warning: #E65100;
+                --hover-overlay: rgba(0, 0, 0, 0.06);
+                --gradient-band: linear-gradient(to bottom, #FFFFFF 0%, #5454E9 5%, #5454E9 45%, #F5F5F5 45%, #F5F5F5 100%);
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        /* Sidebar siempre oscura */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 72px;
+            height: 100%;
+            background-color: #000000;
+            z-index: 50;
+            transition: width 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 280px;
+        }
+
+        /* Logo */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 24px;
+            height: 80px;
+            border-bottom: 1px solid #2F2F2F;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .sidebar-logo img {
+            height: 32px;
+            width: auto;
+            flex-shrink: 0;
+            max-width: none;
+        }
+
+        /* Cuando colapsada: el logo se recorta al ancho del rail */
+        .sidebar:not(:hover) .sidebar-logo img {
+            object-fit: cover;
+            object-position: left;
+            width: 36px;
+            height: 36px;
+        }
+
+        /* User info */
+        .sidebar .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 14px;
+            padding: 20px 24px;
+            flex-shrink: 0;
+        }
+
+        .sidebar .user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .sidebar:not(:hover) .user-avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 18px;
+        }
+
+        .sidebar .user-text {
+            display: flex;
+            flex-direction: column;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease 0.05s;
+            min-width: 0;
+        }
+
+        .sidebar:hover .user-text {
+            opacity: 1;
+        }
+
+        .sidebar .user-name {
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 18px;
+            color: #FFFFFF;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar .user-role {
+            font-weight: 400;
+            font-size: 13px;
+            line-height: 18px;
+            color: #CCCCCC;
+        }
+
+        /* Nav */
+        .sidebar nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar nav::-webkit-scrollbar { width: 4px; }
+        .sidebar nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar nav::-webkit-scrollbar-thumb { background: #2F2F2F; }
+
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 24px;
+            padding: 14px 24px;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 15px;
+            line-height: 20px;
+            white-space: nowrap;
+        }
+
+        .sidebar nav a img {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        .sidebar nav a span {
+            opacity: 0;
+            transition: opacity 0.2s ease 0.05s;
+        }
+
+        .sidebar:hover nav a span {
+            opacity: 1;
+        }
+
+        .sidebar nav a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar nav a.active {
+            background-color: #E4EB60;
+            color: #000000;
+        }
+
+        .sidebar nav a.active img {
+            filter: invert(1);
+            mix-blend-mode: multiply;
+        }
+
+        /* Theme selector */
+        .theme-selector {
+            border-top: 1px solid #2F2F2F;
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+
+        .theme-toggle-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 24px;
+            padding: 14px 24px;
+            color: #FFFFFF;
+            background: none;
+            border: none;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .theme-toggle-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .theme-toggle-btn > svg:first-child {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            stroke: #FFFFFF;
+        }
+
+        .theme-toggle-btn span {
+            opacity: 0;
+            transition: opacity 0.2s ease 0.05s;
+        }
+
+        .sidebar:hover .theme-toggle-btn span {
+            opacity: 1;
+        }
+
+        .theme-toggle-btn .theme-chevron {
+            margin-left: auto;
+            width: 14px;
+            height: 14px;
+            opacity: 0;
+            transition: opacity 0.2s ease 0.05s, transform 0.2s;
+        }
+
+        .sidebar:hover .theme-toggle-btn .theme-chevron {
+            opacity: 1;
+        }
+
+        .theme-chevron.open {
+            transform: rotate(180deg);
+        }
+
+        .theme-options {
+            display: none;
+            flex-direction: column;
+        }
+
+        .theme-options.active {
+            display: flex;
+        }
+
+        .theme-option {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 24px;
+            padding: 12px 24px 12px 50px;
+            color: #FFFFFF;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .theme-option:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .theme-option.selected {
+            background-color: #E4EB60;
+            color: #000000;
+        }
+
+        .theme-option.selected svg {
+            stroke: #000000;
+        }
+
+        .theme-option svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            stroke: #FFFFFF;
+        }
+
+        .theme-option span {
+            opacity: 0;
+            transition: opacity 0.2s ease 0.05s;
+        }
+
+        .sidebar:hover .theme-option span {
+            opacity: 1;
+        }
+
+        /* Logout */
+        .sidebar .logout-section {
+            border-top: 1px solid #2F2F2F;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar .logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 24px;
+            padding: 14px 24px;
+            color: #FFFFFF;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .sidebar .logout-btn img {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        .sidebar .logout-btn span {
+            opacity: 0;
+            transition: opacity 0.2s ease 0.05s;
+        }
+
+        .sidebar:hover .logout-btn span {
+            opacity: 1;
+        }
+
+        .sidebar .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 72px;
+            background: var(--gradient-band);
+            min-height: 100vh;
+            padding: 30px;
+            transition: background 0.2s;
+        }
+
+        .content-area {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Cards Grid (legacy) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .card-body {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        /* Alerts */
+        .alert-msg {
+            padding: 12px 20px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: var(--accent-success);
+            border: 1px solid var(--accent-success);
+        }
+
+        .alert-error {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: var(--accent-danger);
+            border: 1px solid var(--accent-danger);
+        }
+
+        .alert-info {
+            background-color: rgba(33, 150, 243, 0.15);
+            color: #2196F3;
+            border: 1px solid #2196F3;
+        }
+
+        /* Iconos que cambian con el tema (fuera de la sidebar) */
+        [data-theme="light"] .theme-icon[src*="icono_cita.png"] { content: url('/static/img/icono_cita_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_casos.png"] { content: url('/static/img/icono_casos_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_contactos.png"] { content: url('/static/img/icono_contactos_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_anuncios.png"] { content: url('/static/img/icono_anuncios_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_mapa.png"] { content: url('/static/img/icono_mapa_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_servicios.png"] { content: url('/static/img/icono_servicios_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_comunicacion.png"] { content: url('/static/img/icono_comunicacion_white.png'); }
+        [data-theme="light"] .theme-icon[src*="icono_historial.png"] { content: url('/static/img/icono_historial_white.png'); }
+
+        @media (prefers-color-scheme: light) {
+            [data-theme="system"] .theme-icon[src*="icono_cita.png"] { content: url('/static/img/icono_cita_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_casos.png"] { content: url('/static/img/icono_casos_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_contactos.png"] { content: url('/static/img/icono_contactos_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_anuncios.png"] { content: url('/static/img/icono_anuncios_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_mapa.png"] { content: url('/static/img/icono_mapa_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_servicios.png"] { content: url('/static/img/icono_servicios_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_comunicacion.png"] { content: url('/static/img/icono_comunicacion_white.png'); }
+            [data-theme="system"] .theme-icon[src*="icono_historial.png"] { content: url('/static/img/icono_historial_white.png'); }
+        }
+        
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <img src="/static/img/icesi_logo_blanco.svg" alt="ICESI">
+        </div>
+
+        <div class="user-info">
+            <div class="user-avatar">👤</div>
+            <div class="user-text">
+                <div class="user-name">{{ user.nombre_completo }}</div>
+                <div class="user-role">{{ user.get_rol_display }}</div>
+            </div>
+        </div>
+
+        <nav>
+            <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <img src="/static/img/icono_inicio_dark.png" alt=""><span>Inicio</span>
+            </a>
+            <a href="{% url 'gestionar_citas' %}" class="{% if request.resolver_match.url_name == 'gestionar_citas' %}active{% endif %}">
+                <img src="/static/img/icono_cita.png" alt=""><span>Gestion de citas</span>
+            </a>
+            <a href="{% url 'gestionar_casos' %}" class="{% if request.resolver_match.url_name == 'gestionar_casos' %}active{% endif %}">
+                <img src="/static/img/icono_casos.png" alt=""><span>Gestion de casos</span>
+            </a>
+            {% if user.rol == 'administrador' or user.rol == 'secretaria' %}
+            <a href="{% url 'reportes:dashboard_metricas' %}" class="{% if request.resolver_match.url_name == 'dashboard_metricas' %}active{% endif %}">
+                <img src="/static/img/icono_reportes.png" alt=""><span>Reportes</span>
+            </a>
+            <a href="#" class="{% if request.resolver_match.url_name == 'gestionar_usuarios' %}active{% endif %}">
+                <img src="/static/img/icono_usuario.png" alt=""><span>Usuarios</span>
+            </a>
+            <a href="#" class="{% if request.resolver_match.url_name == 'comunicaciones' %}active{% endif %}">
+                <img src="/static/img/icono_comunicacion.png" alt=""><span>Comunicaciones</span>
+            </a>
+            <a href="#" class="{% if request.resolver_match.url_name == 'academico' %}active{% endif %}">
+                <img src="/static/img/icono_academico.png" alt=""><span>Academico</span>
+            </a>
+            <a href="{% url 'bitacora_recordatorios' %}" class="{% if request.resolver_match.url_name == 'bitacora_recordatorios' %}active{% endif %}">
+                <img src="/static/img/icono_comunicacion.png" alt=""><span>Recordatorios enviados</span>
+            </a>
+            {% endif %}
+
+            <div class="theme-selector">
+                <button type="button" class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleThemeOptions()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                    </svg>
+                    <span>Tema</span>
+                    <svg class="theme-chevron" id="themeChevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
+                </button>
+                <div class="theme-options" id="themeOptions">
+                    <button type="button" class="theme-option" data-theme-value="system" onclick="setTheme('system')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        <span>Sistema</span>
+                    </button>
+                    <button type="button" class="theme-option" data-theme-value="light" onclick="setTheme('light')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="4"></circle>
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+                        </svg>
+                        <span>Claro</span>
+                    </button>
+                    <button type="button" class="theme-option" data-theme-value="dark" onclick="setTheme('dark')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <span>Oscuro</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="logout-section">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <img src="/static/img/icono_salir.png" alt=""><span>Cerrar sesión</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="main-content">
+        {% if messages %}
+        <div style="margin-bottom: 15px;">
+            {% for message in messages %}
+            <div class="alert-msg alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        function toggleThemeOptions() {
+            document.getElementById('themeOptions').classList.toggle('active');
+            document.getElementById('themeChevron').classList.toggle('open');
+        }
+
+        function setTheme(value) {
+            document.documentElement.setAttribute('data-theme', value);
+            localStorage.setItem('theme', value);
+            updateThemeSelected(value);
+        }
+
+        function updateThemeSelected(value) {
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                if (btn.dataset.themeValue === value) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        (function() {
+            var savedTheme = localStorage.getItem('theme') || 'system';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeSelected(savedTheme);
+        })();
+
+        document.addEventListener('click', function(e) {
+            var themeSelector = document.querySelector('.theme-selector');
+            var themeOptions = document.getElementById('themeOptions');
+            if (!themeSelector || !themeOptions.classList.contains('active')) return;
+            if (!themeSelector.contains(e.target)) {
+                themeOptions.classList.remove('active');
+                document.getElementById('themeChevron').classList.remove('open');
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

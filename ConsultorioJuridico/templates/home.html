@@ -1,0 +1,363 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .content-area {
+        background: none;
+        padding: 0;
+        min-height: auto;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 388px);
+        grid-template-rows: repeat(2, 283px);
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .card {
+        width: 388px;
+        height: 283px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        position: relative;
+        border-radius: 0;
+        padding: 0;
+    }
+
+    .card-inner {
+        width: 332px;
+        height: 192px;
+        position: absolute;
+        left: 28px;
+        top: 65px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+    }
+
+    .card-header-row {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        position: absolute;
+        left: 30px;
+        top: 25px;
+    }
+
+    .card-header-row img {
+        width: 27px;
+        height: 26px;
+    }
+
+    .card-header-row span {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        color: var(--text-primary);
+    }
+
+    .inner-text {
+        color: var(--text-muted);
+        font-size: 14px;
+        padding: 15px;
+        margin: 0;
+    }
+
+    .cita-info {
+        padding: 12px 15px;
+    }
+
+    .cita-info .cita-codigo {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 18px;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+
+    .cita-info .cita-detalle {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 20px;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .cita-info .cita-detalle strong {
+        color: var(--text-primary);
+    }
+
+    .estado-confirmada { color: var(--accent-success) !important; font-weight: 600; }
+    .estado-pendiente { color: var(--accent-warning) !important; font-weight: 600; }
+    .estado-en_estudio { color: var(--accent-warning) !important; font-weight: 600; }
+    .estado-asignado { color: #865CF0 !important; font-weight: 600; }
+    .estado-cerrado { color: var(--accent-danger) !important; font-weight: 600; }
+    .estado-rechazado { color: #FF5722 !important; font-weight: 600; }
+    .recordatorio-enviado { color: var(--accent-success) !important; font-weight: 600; }
+    .recordatorio-fallido { color: var(--accent-danger) !important; font-weight: 600; }
+    .recordatorio-pendiente { color: var(--accent-warning) !important; font-weight: 600; }
+
+    .caso-card-home {
+        padding: 10px 15px;
+        border: 2px solid var(--border);
+        margin-bottom: 6px;
+    }
+
+    .caso-card-home:last-child { margin-bottom: 0; }
+
+    .caso-card-line {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 18px;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .caso-card-line strong {
+        font-weight: 700;
+    }
+
+    .cita-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+        justify-content: center;
+    }
+
+    .btn-cancelar {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #E9683B;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #E9683B;
+        cursor: pointer;
+    }
+
+    .btn-cancelar:hover { background: rgba(233, 104, 59, 0.15); }
+
+    .btn-posponer {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #865CF0;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #865CF0;
+        cursor: pointer;
+    }
+
+    .btn-posponer:hover { background: rgba(134, 92, 240, 0.15); }
+
+    .btn-confirmar {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid var(--accent-success);
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: var(--accent-success);
+        cursor: pointer;
+    }
+
+    .btn-confirmar:hover { background: rgba(76, 175, 80, 0.15); }
+
+    .servicios-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px;
+        height: 100%;
+        box-sizing: border-box;
+    }
+
+    .servicio-box {
+        width: 100%;
+        height: 85px;
+        background: var(--bg-secondary);
+        box-sizing: border-box;
+        padding: 12px 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .servicio-box-caso {
+        border: 2px solid #865CF0;
+    }
+
+    .servicio-box-cita {
+        border: 2px solid var(--accent-secondary);
+    }
+
+    .servicio-box .servicio-titulo {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 16px;
+        margin: 0 0 6px 0;
+    }
+
+    .servicio-box .servicio-desc {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 16px;
+        margin: 0;
+    }
+
+    .servicio-box-caso .servicio-titulo { color: #865CF0; }
+    .servicio-box-caso .servicio-desc { color: #865CF0; opacity: 0.75; }
+    .servicio-box-cita .servicio-titulo { color: var(--accent-secondary); }
+    .servicio-box-cita .servicio-desc { color: var(--accent-secondary); opacity: 0.75; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cards-grid">
+    <!-- Tarjeta 1: Próxima cita -->
+    <div class="card">
+        <div class="card-header-row">
+            <img src="/static/img/icono_cita.png" alt="" class="theme-icon">
+            <span>Próxima cita</span>
+        </div>
+        <div class="card-inner">
+            {% if proxima_cita %}
+            <div class="cita-info">
+                <p class="cita-codigo">Codigo del caso: {% if proxima_cita.caso %}{{ proxima_cita.caso.codigo }}{% else %}Sin caso{% endif %}</p>
+                <p class="cita-detalle">Fecha: {{ proxima_cita.horario.fecha|date:"d/m/Y" }}</p>
+                <p class="cita-detalle">Hora: {{ proxima_cita.horario.hora_inicio|time:"H:i" }}</p>
+                <p class="cita-detalle">Estado: <span class="estado-{{ proxima_cita.estado }}">{{ proxima_cita.get_estado_display }}</span></p>
+                <p class="cita-detalle">Tipo: {{ proxima_cita.get_tipo_atencion_display }}</p>
+                <p class="cita-detalle">
+                    Recordatorio:
+                    {% if proxima_cita.ultimo_recordatorio %}
+                        <span class="recordatorio-{{ proxima_cita.ultimo_recordatorio.estado }}">
+                            {{ proxima_cita.ultimo_recordatorio.get_estado_display }} ({{ proxima_cita.ultimo_recordatorio.get_canal_display }})
+                        </span>
+                    {% else %}
+                        <span class="recordatorio-pendiente">Sin envíos registrados</span>
+                    {% endif %}
+                </p>
+                <div class="cita-buttons">
+                    <form method="post" action="{% url 'cancelar_cita' proxima_cita.pk %}" onsubmit="return confirm('¿Está seguro de que desea cancelar esta cita?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-cancelar">Cancelar</button>
+                    </form>
+                    {% if proxima_cita.puede_confirmar %}
+                    <form method="post" action="{% url 'confirmar_cita' proxima_cita.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-confirmar">Confirmar</button>
+                    </form>
+                    {% else %}
+                    <form method="post" action="{% url 'posponer_cita' proxima_cita.pk %}" onsubmit="return confirm('¿Desea posponer esta cita y elegir un nuevo horario?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-posponer">Posponer</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p class="inner-text">No tiene citas programadas.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tarjeta 2: Casos registrados -->
+    <div class="card">
+        <div class="card-header-row">
+            <img src="/static/img/icono_casos.png" alt="" class="theme-icon">
+            <span>Casos registrados</span>
+        </div>
+        <div class="card-inner" style="overflow-y: auto;">
+            {% if casos %}
+                {% for caso in casos %}
+                <div class="caso-card-home">
+                    <p class="caso-card-line"><strong>Codigo del caso:</strong> {{ caso.codigo }}</p>
+                    <p class="caso-card-line">Sala juridica: {{ caso.get_sala_juridica_display }}</p>
+                    <p class="caso-card-line">Estado: <span class="estado-{{ caso.estado }}">{{ caso.get_estado_display }}</span></p>
+                    <p class="caso-card-line">Estudiante asignado: {{ caso.estudiante_asignado }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="inner-text">No tiene casos registrados.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tarjeta 3: Mapa -->
+    <div class="card">
+        <div class="card-header-row">
+            <img src="/static/img/icono_mapa.png" alt="" class="theme-icon">
+            <span>Mapa</span>
+        </div>
+        <div class="card-inner">
+            <p class="inner-text">Próximamente</p>
+        </div>
+    </div>
+
+    <!-- Tarjeta 4: Contactos -->
+    <div class="card">
+        <div class="card-header-row">
+            <img src="/static/img/icono_contactos.png" alt="" class="theme-icon">
+            <span>Contactos</span>
+        </div>
+        <div class="card-inner">
+            <p class="inner-text">Próximamente</p>
+        </div>
+    </div>
+
+    <!-- Tarjeta 5: Anuncios -->
+    <div class="card">
+        <div class="card-header-row">
+            <img src="/static/img/icono_anuncios.png" alt="" class="theme-icon">
+            <span>Anuncios</span>
+        </div>
+        <div class="card-inner">
+            <p class="inner-text">Próximamente</p>
+        </div>
+    </div>
+
+    <!-- Tarjeta 6: Servicios -->
+    <div class="card">
+        <div class="card-header-row">
+            <img src="/static/img/icono_servicios.png" alt="" class="theme-icon">
+            <span>Servicios</span>
+        </div>
+        <div class="card-inner" style="border: none;">
+            <div class="servicios-inner">
+                <div class="servicio-box servicio-box-caso">
+                    <p class="servicio-titulo">Nuevo caso</p>
+                    <p class="servicio-desc">Cuando registre un nuevo caso, nos contactaremos con usted para seguir el proceso.</p>
+                </div>
+                <div class="servicio-box servicio-box-cita">
+                    <p class="servicio-titulo">Nueva cita</p>
+                    <p class="servicio-desc">Cuando se solicite la cita, nos contactaremos con usted para confirmar la disponibilidad.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Registro - Paso 1{% endblock %}
+
+{% block extra_css %}
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; margin: 0; padding: 0; }
+
+    .registro-container {
+        display: flex;
+        height: 100vh;
+    }
+
+    .registro-image {
+        width: 50%;
+        min-height: 100vh;
+        background-image: url('/static/img/icesi_fondo.png');
+        background-repeat: no-repeat;
+        background-position: left top;
+        background-size: contain;
+        background-color: #ffffff;
+    }
+
+    .registro-form-section {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 40px 60px;
+        position: relative;
+        overflow-y: auto;
+    }
+
+    .registro-header {
+        position: absolute;
+        top: 30px;
+        right: 40px;
+        text-align: right;
+    }
+
+    .registro-header .brand { font-weight: bold; font-size: 18px; }
+    .registro-header a { color: #5B5FC7; font-size: 14px; text-decoration: none; }
+
+    .registro-form {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .registro-form h2 {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 25px;
+    }
+
+    .registro-form label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 6px;
+        color: #333;
+    }
+
+    .registro-form input[type="text"],
+    .registro-form input[type="email"],
+    .registro-form input[type="tel"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        margin-bottom: 16px;
+        background-color: #EEF0FB;
+    }
+
+    .registro-form button {
+        width: 100%;
+        padding: 12px;
+        background-color: #5B5FC7;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-bottom: 15px;
+    }
+
+    .registro-form button:hover { background-color: #4a4eb3; }
+
+    .registro-links {
+        font-size: 14px;
+    }
+
+    .registro-links a { color: #5B5FC7; text-decoration: none; }
+
+    .error-field {
+        color: #c00;
+        font-size: 12px;
+        margin-top: -12px;
+        margin-bottom: 12px;
+    }
+
+    .footer {
+    position: absolute;
+    bottom: 20px;
+    left: 60px;
+    width: 420px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="registro-container">
+    <div class="registro-image"></div>
+
+    <div class="registro-form-section">
+        <div class="registro-header">
+            <div class="brand">Register Buro</div>
+            <a href="#">Guía Banner</a>
+        </div>
+
+        <div class="registro-form">
+            <h2>Registrate en el Consultorio Jurídico</h2>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <label for="id_documento">Documento de identidad</label>
+                <input type="text" name="documento" id="id_documento"
+                       value="{{ form.documento.value|default:'' }}" required>
+                {% if form.documento.errors %}
+                <div class="error-field">{{ form.documento.errors.0 }}</div>
+                {% endif %}
+
+                <label for="id_nombre_completo">Nombre Completo</label>
+                <input type="text" name="nombre_completo" id="id_nombre_completo"
+                       value="{{ form.nombre_completo.value|default:'' }}" required>
+                {% if form.nombre_completo.errors %}
+                <div class="error-field">{{ form.nombre_completo.errors.0 }}</div>
+                {% endif %}
+
+                <label for="id_telefono">Teléfono</label>
+                <input type="tel" name="telefono" id="id_telefono"
+                       value="{{ form.telefono.value|default:'' }}">
+                {% if form.telefono.errors %}
+                <div class="error-field">{{ form.telefono.errors.0 }}</div>
+                {% endif %}
+
+                <label for="id_correo">Correo</label>
+                <input type="email" name="correo" id="id_correo"
+                       value="{{ form.correo.value|default:'' }}" required>
+                {% if form.correo.errors %}
+                <div class="error-field">{{ form.correo.errors.0 }}</div>
+                {% endif %}
+
+                <label for="id_direccion">Dirección</label>
+                <input type="text" name="direccion" id="id_direccion"
+                       value="{{ form.direccion.value|default:'' }}">
+                {% if form.direccion.errors %}
+                <div class="error-field">{{ form.direccion.errors.0 }}</div>
+                {% endif %}
+
+                <button type="submit">Siguiente</button>
+            </form>
+
+            <div class="registro-links">
+                <a href="{% url 'login' %}">Ya tiene una cuenta? Iniciar sesión</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            Universidad Icesi, Calle 18 No. 122–135<br>
+            Cali-Colombia | Teléfono: 555 2334 | Fax: 555 1441<br>
+            Copyright © 2026 <a href="https://www.icesi.edu.co">www.icesi.edu.co</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

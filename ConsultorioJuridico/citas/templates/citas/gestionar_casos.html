@@ -1,0 +1,808 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Gestionar casos{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .content-area {
+        background: none;
+        padding: 0;
+        min-height: auto;
+    }
+
+    .casos-layout {
+        display: grid;
+        grid-template-columns: 528px 605px;
+        gap: 34px;
+        justify-content: center;
+    }
+
+    /* Panel izquierdo: Casos registrados */
+    .casos-panel {
+        width: 528px;
+        height: 584px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .casos-panel-header {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        margin-bottom: 20px;
+    }
+
+    .casos-panel-header img {
+        width: 27px;
+        height: 26px;
+    }
+
+    .casos-panel-header span {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        line-height: 20px;
+        color: var(--text-primary);
+    }
+
+    /* Lista scrollable interna */
+    .casos-scroll {
+        width: 100%;
+        height: 458px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    /* Tarjeta de caso */
+    .caso-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+
+    .caso-item {
+        flex: 1;
+        min-height: 108px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .caso-info p {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 16px;
+        line-height: 20px;
+        color: var(--text-primary);
+        margin: 0 0 2px 0;
+    }
+
+    .caso-info .caso-codigo {
+        font-weight: 700;
+    }
+
+    .estado-en_estudio { color: #FFC107 !important; }
+    .estado-asignado { color: #865CF0 !important; }
+    .estado-cerrado { color: #F44336 !important; }
+    .estado-rechazado { color: #FF5722 !important; }
+
+    .btn-pedir-cita {
+        width: 112px;
+        height: 30px;
+        background: var(--bg-primary);
+        border: 2px solid #4CB979;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 15px;
+        color: #4CB979;
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .btn-pedir-cita:hover { background: rgba(76, 185, 121, 0.1); }
+
+    /* Panel derecho: Nueva cita */
+    .nueva-cita-panel {
+        width: 605px;
+        height: 584px;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nueva-cita-titulo {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        line-height: 29px;
+        color: var(--text-primary);
+        margin: 0 0 20px 0;
+    }
+
+    .nueva-cita-inner {
+        width: 100%;
+        flex: 1;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        box-sizing: border-box;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .nueva-cita-vacio {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #4CAF50;
+        font-size: 14px;
+        min-height: 300px;
+    }
+
+    .nueva-cita-vacio .check-icon {
+        width: 60px;
+        height: 60px;
+        border: 3px solid #4CAF50;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        margin-bottom: 15px;
+    }
+
+    .inner-text {
+        color: var(--text-muted);
+        font-size: 14px;
+        padding: 15px;
+        margin: 0;
+    }
+
+    /* Scrollbar styling */
+    .casos-scroll::-webkit-scrollbar { width: 4px; }
+    .casos-scroll::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    .casos-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Layout del formulario calendario ── */
+    .cita-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .calendario-section {
+        grid-column: 1 / 2;
+        max-height: 340px;
+        display: flex;
+        flex-direction: column;
+    }
+    .hora-section { grid-column: 2 / 3; }
+
+    .section-label {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+
+    /* Calendario nav */
+    .cal-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    .cal-nav-btn {
+        background: var(--border);
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        border-radius: 2px;
+    }
+
+    .cal-nav-btn:hover { background: var(--border-strong); }
+
+    .cal-today-btn {
+        background: var(--border);
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+        padding: 4px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        font-family: 'Inter', sans-serif;
+        border-radius: 2px;
+    }
+
+    .cal-today-btn:hover { background: var(--border-strong); }
+
+    .cal-month-label {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 13px;
+        color: var(--text-primary);
+        margin-left: auto;
+    }
+
+    /* Tabs de vista */
+    .cal-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 4px;
+    }
+
+    .cal-tab {
+        padding: 5px 12px;
+        background: var(--border);
+        border: 1px solid var(--border-strong);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        cursor: pointer;
+    }
+
+    .cal-tab:first-child { border-radius: 2px 0 0 2px; }
+    .cal-tab:last-child { border-radius: 0 2px 2px 0; }
+
+    .cal-tab.active {
+        background: #E4EB60;
+        color: #000000;
+        border-color: #E4EB60;
+    }
+
+    /* Grid del calendario */
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        overflow-y: auto;
+        max-height: 220px;
+    }
+
+    .cal-grid::-webkit-scrollbar { width: 4px; }
+    .cal-grid::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    .cal-grid::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+    .cal-day-header {
+        background: var(--bg-tertiary);
+        padding: 4px 2px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .cal-day {
+        background: var(--bg-secondary);
+        padding: 3px 2px;
+        min-height: 24px;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+        position: relative;
+    }
+
+    .cal-day:hover { background: var(--hover-overlay); }
+    .cal-day.other-month { color: var(--text-muted); cursor: default; opacity: 0.5; }
+    .cal-day.other-month:hover { background: var(--bg-secondary); }
+    .cal-day.today { background: var(--bg-tertiary); }
+
+    .cal-day.has-slots::after {
+        content: '';
+        display: block;
+        width: 4px;
+        height: 4px;
+        background: #4CB979;
+        border-radius: 50%;
+        margin: 2px auto 0;
+    }
+
+    .cal-day.selected {
+        background: #E4EB60;
+        color: #000000;
+    }
+
+    .cal-day.selected::after { background: #000000; }
+
+    /* Selector de hora */
+    .hora-picker {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+
+    .hora-input {
+        width: 40px;
+        height: 34px;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        text-align: center;
+        border-radius: 2px;
+        appearance: textfield;
+        -moz-appearance: textfield;
+    }
+
+    .hora-input::-webkit-outer-spin-button,
+    .hora-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .hora-input:focus { outline: none; border-color: #E4EB60; }
+
+    .hora-separator {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .ampm-toggle {
+        display: flex;
+        flex-direction: column;
+        margin-left: 6px;
+    }
+
+    .ampm-btn {
+        padding: 3px 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        border: 1px solid var(--border-strong);
+        background: var(--border);
+        color: var(--text-muted);
+    }
+
+    .ampm-btn:first-child { border-radius: 2px 2px 0 0; }
+    .ampm-btn:last-child { border-radius: 0 0 2px 2px; border-top: none; }
+
+    .ampm-btn.active {
+        background: #E4EB60;
+        color: #000000;
+        border-color: #E4EB60;
+    }
+
+    /* Slots de hora disponibles */
+    .hora-slots {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 120px;
+        overflow-y: auto;
+        margin-bottom: 12px;
+    }
+
+    .hora-slots::-webkit-scrollbar { width: 4px; }
+    .hora-slots::-webkit-scrollbar-track { background: var(--bg-secondary); }
+    .hora-slots::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+    .hora-slot-btn {
+        padding: 6px 10px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 2px;
+        text-align: center;
+    }
+
+    .hora-slot-btn:hover { border-color: #E4EB60; color: #E4EB60; }
+
+    .hora-slot-btn.selected {
+        background: #E4EB60;
+        color: #000000;
+        border-color: #E4EB60;
+        font-weight: 700;
+    }
+
+    .hora-msg {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+    }
+
+    /* Botón Solicitar */
+    .btn-solicitar {
+        width: 100%;
+        max-width: 150px;
+        padding: 8px 16px;
+        background: var(--bg-primary);
+        border: 2px solid #E4EB60;
+        border-radius: 2px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 14px;
+        color: #E4EB60;
+        cursor: pointer;
+        margin-bottom: 14px;
+    }
+
+    .btn-solicitar:hover { background: rgba(228, 235, 96, 0.1); }
+
+    .info-text {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 400;
+        font-size: 12px;
+        line-height: 18px;
+        color: #E9683B;
+        margin: 0;
+        max-width: 200px;
+    }
+
+    /* Tipo de atención */
+    .tipo-atencion-section {
+        grid-column: 1 / -1;
+        margin-top: 6px;
+    }
+
+    .tipo-atencion-label {
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--text-primary);
+        margin: 0 0 14px 0;
+    }
+
+    .tipo-atencion-options {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .tipo-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        font-size: 15px;
+        color: var(--text-primary);
+    }
+
+    .tipo-option input[type="radio"] { display: none; }
+
+    .tipo-checkbox {
+        width: 22px;
+        height: 22px;
+        background: var(--bg-tertiary);
+        border: 2px solid var(--border-strong);
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+
+    .tipo-option input[type="radio"]:checked + .tipo-checkbox {
+        background: #E4EB60;
+        border-color: #E4EB60;
+    }
+
+    .tipo-option input[type="radio"]:checked + .tipo-checkbox::after {
+        content: '✓';
+        color: #000000;
+        font-size: 14px;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="casos-layout">
+
+    <!-- Panel izquierdo: Casos registrados -->
+    <div class="casos-panel">
+        <div class="casos-panel-header">
+            <img src="/static/img/icono_casos.png" alt="" class="theme-icon">
+            <span>Casos registrados</span>
+        </div>
+        <div class="casos-scroll">
+            {% if casos %}
+                {% for caso in casos %}
+                <div class="caso-row">
+                    <div class="caso-item">
+                        <div class="caso-info">
+                            <p class="caso-codigo">Codigo del caso: {{ caso.codigo }}</p>
+                            <p>Sala jurídica: {{ caso.get_sala_juridica_display }}</p>
+                            <p>Estado: <span class="estado-{{ caso.estado }}">{{ caso.get_estado_display }}</span></p>
+                            <p>Estudiante asignado: {{ caso.estudiante_asignado }}</p>
+                        </div>
+                    </div>
+                    <a href="?caso_id={{ caso.pk }}" class="btn-pedir-cita">Pedir Cita</a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="inner-text">No tiene casos registrados.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Panel derecho: Nueva cita -->
+    <div class="nueva-cita-panel">
+        {% if caso_seleccionado %}
+        <p class="nueva-cita-titulo">Nueva cita - {{ caso_seleccionado.codigo }}</p>
+        {% else %}
+        <p class="nueva-cita-titulo">Nueva cita</p>
+        {% endif %}
+
+        <div class="nueva-cita-inner">
+            {% if caso_seleccionado %}
+            <form method="post" action="{% url 'agendar_cita' %}" id="citaForm">
+                {% csrf_token %}
+                <input type="hidden" name="caso_id" value="{{ caso_seleccionado.pk }}">
+                <input type="hidden" name="fecha" id="inputFecha">
+                <input type="hidden" name="hora" id="inputHora">
+                <input type="hidden" name="tipo_atencion" id="inputTipoAtencion" value="presencial">
+
+                <div class="cita-form-grid">
+                    <!-- Columna izquierda: Calendario -->
+                    <div class="calendario-section">
+                        <p class="section-label">Selecciona la fecha:</p>
+
+                        <div class="cal-nav">
+                            <button type="button" class="cal-nav-btn" id="calPrev">‹</button>
+                            <button type="button" class="cal-nav-btn" id="calNext">›</button>
+                            <button type="button" class="cal-today-btn" id="calToday">Hoy</button>
+                            <span class="cal-month-label" id="calMonthLabel"></span>
+                        </div>
+
+                        <div class="cal-tabs">
+                            <button type="button" class="cal-tab active">Mes</button>
+                            <button type="button" class="cal-tab">Semana</button>
+                            <button type="button" class="cal-tab">3 días</button>
+                            <button type="button" class="cal-tab">Día</button>
+                            <button type="button" class="cal-tab">Agenda</button>
+                        </div>
+
+                        <div class="cal-grid" id="calGrid" data-horarios='[{% for h in horarios_disponibles %}{"fecha":"{{ h.fecha|date:"Y-m-d" }}","horaInicio":"{{ h.hora_inicio|time:"H:i" }}","horaFin":"{{ h.hora_fin|time:"H:i" }}","id":{{ h.pk }}}{% if not forloop.last %},{% endif %}{% endfor %}]'></div>
+                    </div>
+
+                    <!-- Columna derecha: Hora + Solicitar -->
+                    <div class="hora-section">
+                        <p class="section-label">Selecciona la hora:</p>
+
+                        <div id="horaContainer">
+                            <p class="hora-msg">Seleccione un día en el calendario</p>
+                        </div>
+
+                        <button type="submit" class="btn-solicitar">Solicitar</button>
+
+                        <p class="info-text">Cuando se solicite la cita, nos contactaremos con usted para confirmar la disponibilidad.</p>
+                    </div>
+
+                    <!-- Tipo de atención -->
+                    <div class="tipo-atencion-section">
+                        <p class="tipo-atencion-label">Tipo de atención:</p>
+                        <div class="tipo-atencion-options">
+                            <label class="tipo-option">
+                                <input type="radio" name="tipo_atencion_radio" value="presencial" checked>
+                                <span class="tipo-checkbox"></span>
+                                Presencial
+                            </label>
+                            <label class="tipo-option">
+                                <input type="radio" name="tipo_atencion_radio" value="virtual">
+                                <span class="tipo-checkbox"></span>
+                                Virtual
+                            </label>
+                            <label class="tipo-option">
+                                <input type="radio" name="tipo_atencion_radio" value="telefonica">
+                                <span class="tipo-checkbox"></span>
+                                Telefónica
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {% else %}
+            <div class="nueva-cita-vacio">
+                <div class="check-icon">✓</div>
+                <p>Seleccione un caso para solicitar una cita</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var calGrid = document.getElementById('calGrid');
+    if (!calGrid) return;
+
+    var currentMonth = new Date().getMonth();
+    var currentYear = new Date().getFullYear();
+    var selectedDate = null;
+    var selectedHorarioId = null;
+
+    var horariosDisponibles = JSON.parse(calGrid.getAttribute('data-horarios') || '[]');
+
+    var fechasConSlots = {};
+    horariosDisponibles.forEach(function(h) { fechasConSlots[h.fecha] = true; });
+
+    var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    var diasSemana = ['lun','mar','mié','jue','vie','sáb','dom'];
+
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+    function renderCalendar() {
+        document.getElementById('calMonthLabel').textContent = meses[currentMonth] + ' de ' + currentYear;
+
+        var firstDay = new Date(currentYear, currentMonth, 1);
+        var startDay = firstDay.getDay() - 1;
+        if (startDay < 0) startDay = 6;
+
+        var daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        var daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+        var html = '';
+        diasSemana.forEach(function(d) { html += '<div class="cal-day-header">' + d + '</div>'; });
+
+        for (var i = startDay - 1; i >= 0; i--) {
+            html += '<div class="cal-day other-month">' + (daysInPrevMonth - i) + '</div>';
+        }
+
+        var today = new Date();
+        for (var d = 1; d <= daysInMonth; d++) {
+            var dateStr = currentYear + '-' + pad(currentMonth + 1) + '-' + pad(d);
+            var cls = 'cal-day';
+            if (d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) cls += ' today';
+            if (fechasConSlots[dateStr]) cls += ' has-slots';
+            if (selectedDate === dateStr) cls += ' selected';
+            html += '<div class="' + cls + '" data-date="' + dateStr + '">' + d + '</div>';
+        }
+
+        var totalCells = startDay + daysInMonth;
+        var remaining = (7 - (totalCells % 7)) % 7;
+        for (var i = 1; i <= remaining; i++) {
+            html += '<div class="cal-day other-month">' + i + '</div>';
+        }
+
+        calGrid.innerHTML = html;
+
+        calGrid.querySelectorAll('.cal-day:not(.other-month)').forEach(function(el) {
+            el.addEventListener('click', function() {
+                selectedDate = this.dataset.date;
+                selectedHorarioId = null;
+                document.getElementById('inputFecha').value = selectedDate;
+                document.getElementById('inputHora').value = '';
+                renderCalendar();
+                renderHoraSlots();
+            });
+        });
+    }
+
+    function renderHoraSlots() {
+        var container = document.getElementById('horaContainer');
+
+        if (!selectedDate) {
+            container.innerHTML = '<p class="hora-msg">Seleccione un día en el calendario</p>';
+            return;
+        }
+
+        var slotsDelDia = horariosDisponibles.filter(function(h) {
+            return h.fecha === selectedDate;
+        });
+
+        if (slotsDelDia.length === 0) {
+            container.innerHTML = '<p class="hora-msg">No hay horarios disponibles para esta fecha</p>';
+            return;
+        }
+
+        var html = '<div class="hora-slots">';
+        slotsDelDia.forEach(function(slot) {
+            var cls = 'hora-slot-btn';
+            if (selectedHorarioId === slot.id) cls += ' selected';
+            html += '<button type="button" class="' + cls + '" data-id="' + slot.id + '" data-hora="' + slot.horaInicio + '">';
+            html += slot.horaInicio + ' - ' + slot.horaFin;
+            html += '</button>';
+        });
+        html += '</div>';
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('.hora-slot-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                selectedHorarioId = parseInt(this.dataset.id);
+                document.getElementById('inputHora').value = this.dataset.hora;
+                renderHoraSlots();
+            });
+        });
+    }
+
+    document.getElementById('calPrev').addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar();
+    });
+
+    document.getElementById('calNext').addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    });
+
+    document.getElementById('calToday').addEventListener('click', function() {
+        var t = new Date();
+        currentMonth = t.getMonth();
+        currentYear = t.getFullYear();
+        renderCalendar();
+    });
+
+    document.querySelectorAll('.cal-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.cal-tab').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('input[name="tipo_atencion_radio"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+            document.getElementById('inputTipoAtencion').value = this.value;
+        });
+    });
+
+    document.getElementById('citaForm').addEventListener('submit', function(e) {
+        if (!document.getElementById('inputFecha').value) {
+            e.preventDefault();
+            alert('Por favor seleccione una fecha en el calendario.');
+            return;
+        }
+        if (!document.getElementById('inputHora').value) {
+            e.preventDefault();
+            alert('Por favor seleccione un horario disponible.');
+            return;
+        }
+    });
+
+    renderCalendar();
+})();
+</script>
+{% endblock %}

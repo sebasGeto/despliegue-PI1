@@ -1,0 +1,37 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Historial de usuario{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:1000px;margin:0 auto">
+    <div class="card-header">Historial de citas — {{ usuario_obj.nombre_completo }}</div>
+    <div class="card-body">
+        {% if historial %}
+        <table style="width:100%;border-collapse:collapse">
+            <thead>
+                <tr style="text-align:left;border-bottom:1px solid var(--border);">
+                    <th style="padding:8px">Fecha</th>
+                    <th style="padding:8px">Hora</th>
+                    <th style="padding:8px">Estado</th>
+                    <th style="padding:8px">Tipo</th>
+                    <th style="padding:8px">Caso</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in historial %}
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:8px">{{ c.fecha }}</td>
+                    <td style="padding:8px">{{ c.hora }}</td>
+                    <td style="padding:8px">{{ c.estado }}</td>
+                    <td style="padding:8px">{{ c.tipo }}</td>
+                    <td style="padding:8px">{{ c.caso_codigo|default:'-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No existen citas registradas para este usuario.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

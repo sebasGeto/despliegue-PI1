@@ -1,0 +1,312 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Recordatorios enviados{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .bitacora-card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-strong);
+        padding: 30px;
+    }
+
+    .bitacora-header {
+        margin-bottom: 8px;
+    }
+
+    .bitacora-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .bitacora-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+    }
+
+    .filters-bar {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-strong);
+        padding: 20px;
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .filter-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .filter-select {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        padding: 9px 12px;
+        font-size: 14px;
+        min-width: 160px;
+        cursor: pointer;
+        font-family: inherit;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #E4EB60;
+    }
+
+    .filter-btn {
+        background-color: transparent;
+        color: #E4EB60;
+        border: 1px solid #E4EB60;
+        padding: 9px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .filter-btn:hover {
+        background-color: #E4EB60;
+        color: #000000;
+    }
+
+    .filter-reset {
+        background-color: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--border);
+        padding: 9px 20px;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .filter-reset:hover {
+        border-color: var(--text-muted);
+        color: var(--text-primary);
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        border: 1px solid var(--border-strong);
+    }
+
+    .bitacora-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        background-color: var(--bg-primary);
+    }
+
+    .bitacora-table thead {
+        background-color: var(--bg-primary);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .bitacora-table th {
+        text-align: left;
+        padding: 14px 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+    }
+
+    .bitacora-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+    }
+
+    .bitacora-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .bitacora-table tbody tr:hover {
+        background-color: rgba(228, 235, 96, 0.05);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-enviado {
+        color: #3FB950;
+        border: 1px solid #3FB950;
+        background-color: rgba(63, 185, 80, 0.1);
+    }
+
+    .badge-pendiente {
+        color: #E4EB60;
+        border: 1px solid #E4EB60;
+        background-color: rgba(228, 235, 96, 0.1);
+    }
+
+    .badge-fallido {
+        color: #F44336;
+        border: 1px solid #F44336;
+        background-color: rgba(244, 67, 54, 0.1);
+    }
+
+    .badge-canal {
+        color: #5454E9;
+        border: 1px solid #5454E9;
+        background-color: rgba(84, 84, 233, 0.1);
+    }
+
+    .error-cell {
+        max-width: 300px;
+        color: #F44336;
+        font-size: 12px;
+        font-style: italic;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+        border: 1px solid var(--border-strong);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 14px;
+        text-decoration: none;
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    .pagination a {
+        background-color: transparent;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .pagination a:hover {
+        border-color: #E4EB60;
+        color: #E4EB60;
+    }
+
+    .pagination .current {
+        background-color: transparent;
+        border: 1px solid #E4EB60;
+        color: #E4EB60;
+        font-weight: 600;
+    }
+
+    .pagination-info {
+        color: var(--text-muted);
+        font-size: 13px;
+        margin-left: 15px;
+        border: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bitacora-card">
+    <div class="bitacora-header">
+        <h1 class="bitacora-title">Recordatorios enviados</h1>
+    </div>
+    <p class="bitacora-subtitle">Registro de todos los intentos de envío de recordatorios y confirmaciones a beneficiarios.</p>
+
+    <form method="get" class="filters-bar">
+        <div class="filter-group">
+            <label for="canal" class="filter-label">Canal</label>
+            <select name="canal" id="canal" class="filter-select">
+                <option value="">Todos</option>
+                {% for value, label in canal_choices %}
+                    <option value="{{ value }}" {% if canal_filtro == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="estado" class="filter-label">Estado</label>
+            <select name="estado" id="estado" class="filter-select">
+                <option value="">Todos</option>
+                {% for value, label in estado_choices %}
+                    <option value="{{ value }}" {% if estado_filtro == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="filter-btn">Aplicar filtros</button>
+        <a href="{% url 'bitacora_recordatorios' %}" class="filter-reset">Limpiar</a>
+    </form>
+
+    {% if page_obj.object_list %}
+    <div class="table-wrapper">
+        <table class="bitacora-table">
+            <thead>
+                <tr>
+                    <th>Beneficiario</th>
+                    <th>Cita</th>
+                    <th>Canal</th>
+                    <th>Estado</th>
+                    <th>Fecha intento</th>
+                    <th>Fecha envío</th>
+                    <th>Intentos</th>
+                    <th>Error</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in page_obj.object_list %}
+                <tr>
+                    <td>{{ log.cita.beneficiario.nombre_completo }}</td>
+                    <td>{{ log.cita.horario.fecha|date:"d/m/Y" }} {{ log.cita.horario.hora_inicio|time:"H:i" }}</td>
+                    <td><span class="badge badge-canal">{{ log.get_canal_display }}</span></td>
+                    <td><span class="badge badge-{{ log.estado }}">{{ log.get_estado_display }}</span></td>
+                    <td>{{ log.fecha_intento|date:"d/m/Y H:i" }}</td>
+                    <td>{% if log.fecha_envio %}{{ log.fecha_envio|date:"d/m/Y H:i" }}{% else %}—{% endif %}</td>
+                    <td>{{ log.intentos }}</td>
+                    <td class="error-cell">{% if log.mensaje_error %}{{ log.mensaje_error|truncatechars:60 }}{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1{% if canal_filtro %}&canal={{ canal_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">« Primera</a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if canal_filtro %}&canal={{ canal_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">‹ Anterior</a>
+        {% endif %}
+
+        <span class="current">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if canal_filtro %}&canal={{ canal_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">Siguiente ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if canal_filtro %}&canal={{ canal_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}">Última »</a>
+        {% endif %}
+
+        <span class="pagination-info">{{ page_obj.paginator.count }} registros en total</span>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No hay registros de recordatorios que coincidan con los filtros aplicados.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

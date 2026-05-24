@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TO DO APP</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex overflow-hidden relative">
+
+    <!-- Mobile Overlay (Backdrop) -->
+    <!-- This creates a dark background when menu is open on mobile -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0 lg:hidden glass"></div>
+
+    <!-- Sidebar -->
+    <!-- Added: fixed position for mobile, translate classes for animation, z-index -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white shadow-2xl border-r border-gray-700 h-screen transition-transform duration-300 ease-in-out transform -translate-x-full lg:translate-x-0 lg:relative lg:inset-auto">
+        
+        <!-- Logo/Header -->
+        <div class="px-6 py-8 border-b border-gray-700 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    To-Do App
+                </h2>
+            </div>
+            
+            <!-- Close Button (Mobile Only) -->
+            <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex flex-col px-3 py-6 space-y-2">
+            <a href="{% url 'list-tasks' %}" class="group flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all duration-200 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-purple-600/0 group-hover:from-blue-600/20 group-hover:to-purple-600/20 transition-all duration-200"></div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                <span class="font-medium group-hover:text-white transition-colors relative z-10">Ver tareas</span>
+            </a>
+
+            <a href="{% url 'create-task' %}" class="group flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-all duration-200 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-purple-600/0 group-hover:from-blue-600/20 group-hover:to-purple-600/20 transition-all duration-200"></div>
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span class="font-medium group-hover:text-white transition-colors relative z-10">Crear tarea</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        <!-- Mobile Header (Visible only on small screens) -->
+        <header class="bg-white border-b border-gray-200 p-4 lg:hidden flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                 <button onclick="toggleSidebar()" class="text-gray-600 hover:text-blue-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                <span class="font-bold text-gray-700">Menu</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+            {% block content %}
+            <!-- Demo Content to visualize layout -->
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800 mb-2">Welcome Back!</h1>
+                    <p class="text-gray-600">This layout is now responsive. Resize the window to see the sidebar toggle.</p>
+                </div>
+            </div>
+            {% endblock %}
+        </main>
+    </div>
+
+    <!-- JavaScript for Toggle Functionality -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            // Toggle Sidebar Class
+            if (sidebar.classList.contains('-translate-x-full')) {
+                // Open Sidebar
+                sidebar.classList.remove('-translate-x-full');
+                
+                // Show Overlay
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                }, 10); // Tiny delay to allow display:block to apply before opacity transition
+            } else {
+                // Close Sidebar
+                sidebar.classList.add('-translate-x-full');
+                
+                // Hide Overlay
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300); // Wait for transition to finish
+            }
+        }
+    </script>
+</body>
+</html>
